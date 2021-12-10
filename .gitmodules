@@ -1,0 +1,3 @@
+[submodule "BIEST"]
+	path = BIEST
+	url = git@github.com:dmalhotra/BIEST.git
