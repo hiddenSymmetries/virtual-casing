@@ -3,7 +3,12 @@
 
 #include <biest.hpp>
 
-template <class Real> void GenerateVirtualCasingTestData(sctl::Vector<Real>& X, sctl::Vector<Real>& Bext, sctl::Vector<Real>& Bint, long Nt, long Np, biest::SurfType surf_type = biest::SurfType::AxisymNarrow){
+template <class Real> void GenerateSurfaceCoordinates(sctl::Vector<Real>& X, long Nt, long Np, biest::SurfType surf_type = biest::SurfType::AxisymNarrow) {
+  biest::Surface<Real> S(Nt,Np, surf_type);
+  X = S.Coord();
+}
+
+template <class Real> void GenerateVirtualCasingTestData(sctl::Vector<Real>& Bext, sctl::Vector<Real>& Bint, long Nt, long Np, const sctl::Vector<Real>& X) {
   constexpr sctl::Integer COORD_DIM = 3;
   auto WriteVTK_ = [](std::string fname, const sctl::Vector<sctl::Vector<Real>>& coords, const sctl::Vector<sctl::Vector<Real>>& values) {
     biest::VTKData data;
@@ -63,12 +68,15 @@ template <class Real> void GenerateVirtualCasingTestData(sctl::Vector<Real>& X, 
       return C*(1/r);
     };
     sctl::Vector<Real> coord_(COORD_DIM), normal_(COORD_DIM), e0(COORD_DIM), e1(COORD_DIM);
-    normal_[0] = normal.begin()[0];
-    normal_[1] = normal.begin()[1];
-    normal_[2] = normal.begin()[2];
     coord_[0] = coord.begin()[0];
     coord_[1] = coord.begin()[1];
     coord_[2] = coord.begin()[2];
+    normal_[0] = normal.begin()[0];
+    normal_[1] = normal.begin()[1];
+    normal_[2] = normal.begin()[2];
+    Real normal_scal = 1/sctl::sqrt<Real>(normal_[0]*normal_[0]+normal_[1]*normal_[1]+normal_[2]*normal_[2]);
+    normal_ *= normal_scal;
+
     e0[0] = drand48();
     e0[1] = drand48();
     e0[2] = drand48();
@@ -108,7 +116,8 @@ template <class Real> void GenerateVirtualCasingTestData(sctl::Vector<Real>& X, 
 
   sctl::Comm comm = sctl::Comm::Self();
   sctl::Vector<biest::Surface<Real>> Svec(1);
-  Svec[0] = biest::Surface<Real>(Nt,Np, surf_type);
+  Svec[0] = biest::Surface<Real>(Nt,Np);
+  Svec[0].Coord() = X;
 
   sctl::Vector<sctl::Vector<Real>> source0, density0;
   sctl::Vector<sctl::Vector<Real>> source1, density1;
@@ -119,7 +128,9 @@ template <class Real> void GenerateVirtualCasingTestData(sctl::Vector<Real>& X, 
       sctl::Long Nt = 100, Np = 100;
       sctl::Vector<Real> coord(COORD_DIM*Nt);
       { // Set coord
-        auto S = biest::Surface<Real>(Nt,Np, surf_type);
+        auto S = biest::Surface<Real>(Nt,Np);
+        biest::SurfaceOp<Real>::Upsample(Svec[0].Coord(), Svec[0].NTor(), Svec[0].NPol(), S.Coord(), Nt, Np);
+
         sctl::Vector<Real> normal, dX;
         biest::SurfaceOp<Real> SurfOp(comm, Nt, Np);
         SurfOp.Grad2D(dX, S.Coord());
@@ -150,17 +161,20 @@ template <class Real> void GenerateVirtualCasingTestData(sctl::Vector<Real>& X, 
     density0.PushBack(dX*0.05);
   }
   { // Set outside sources (source1, density1)
-    add_source_loop(source1, density1, {2,0,0}, {0,1,0}, 2);
+    const sctl::Long N = source0[0].Dim()/COORD_DIM;
+    const sctl::StaticArray<Real,COORD_DIM> X{source0[0][0*N],source0[0][1*N],source0[0][2*N]};
+    const sctl::StaticArray<Real,COORD_DIM> Xn{density0[0][0*N],density0[0][1*N],density0[0][2*N]};
+    const Real R = sctl::sqrt<Real>(X[0]*X[0] + X[1]*X[1] + X[2]*X[2]);
+    add_source_loop(source1, density1, {X[0],X[1],X[2]}, {Xn[0],Xn[1],Xn[2]}, R);
   }
 
   Bint = eval_BiotSavart(Svec[0].Coord(), source0, density0);
   Bext = eval_BiotSavart(Svec[0].Coord(), source1, density1);
-  X = Svec[0].Coord();
 
   // Visualization
-  //WriteVTK_("loop0", source0, density0);
-  //WriteVTK_("loop1", source1, density1);
-  //biest::WriteVTK("S", Svec, B);
+  WriteVTK_("loop0", source0, density0);
+  WriteVTK_("loop1", source1, density1);
+  biest::WriteVTK("S", Svec, Bext+Bint);
   SCTL_UNUSED(WriteVTK_);
   SCTL_UNUSED(DotProd);
 }
