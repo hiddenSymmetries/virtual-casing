@@ -35,9 +35,9 @@ template <class Real, sctl::Integer COORD_DIM, sctl::Integer KDIM0, sctl::Intege
           cond = std::max<Real>(cond, sctl::sqrt<Real>(cond2));
         }
       }
-      if (cond > 5) {
+      if (cond > 4) {
         SCTL_WARN("The surface mesh is highly anisotropic! Quadrature generation will be very slow. Consider using a better surface discretization.");
-        std::cout<<"Mesh aspect-ratio = "<<cond<<'\n';
+        std::cout<<"Mesh anisotropy = "<<cond<<'\n';
       }
       SetupSingular_<1>(Svec, ker, digits*1.2*cond);
 
@@ -349,7 +349,7 @@ template <class Real, sctl::Integer COORD_DIM, sctl::Integer KDIM0, sctl::Intege
     sctl::Comm comm_;
 };
 
-template <class Real> VirtualCasing<Real>::VirtualCasing() : comm_(sctl::Comm::Self()), BiotSavartFxU(comm_), LaplaceFxdU(comm_), Svec(1), digits_(10), dosetup(true) {
+template <class Real> VirtualCasing<Real>::VirtualCasing() : comm_(sctl::Comm::Self()), LaplaceFxdU(comm_), Svec(1), digits_(10), dosetup(true) {
 }
 
 template <class Real> void VirtualCasing<Real>::SetSurface(sctl::Long Nt, sctl::Integer Np, const sctl::Vector<Real>& X) {
@@ -366,7 +366,7 @@ template <class Real> void VirtualCasing<Real>::SetAccuracy(sctl::Integer digits
 
 template <class Real> void VirtualCasing<Real>::ComputeBext(sctl::Vector<Real>& Bext, const sctl::Vector<Real>& B) const {
   if (dosetup) {
-    BiotSavartFxU.SetupSingular(Svec, biest::BiotSavart3D<Real>::FxU(), digits_);
+    //BiotSavartFxU.SetupSingular(Svec, biest::BiotSavart3D<Real>::FxU(), digits_);
     LaplaceFxdU.SetupSingular(Svec, biest::Laplace3D<Real>::FxdU(), digits_);
 
     biest::SurfaceOp<Real> SurfOp(comm_, Svec[0].NTor(), Svec[0].NPol());
@@ -379,7 +379,25 @@ template <class Real> void VirtualCasing<Real>::ComputeBext(sctl::Vector<Real>& 
   DotProd(BdotN, B, normal);
   CrossProd(J, normal, B);
   LaplaceFxdU.Eval(Bext_, BdotN);
-  BiotSavartFxU.Eval(Bext, J);
+  { //BiotSavartFxU.Eval(Bext, J);
+    const sctl::Long N = J.Dim() / COORD_DIM;
+    sctl::Vector<Real> gradG_J(N * COORD_DIM * COORD_DIM); gradG_J = 0;
+    sctl::Vector<Real> gradG_J0(N*COORD_DIM, gradG_J.begin() + N*COORD_DIM*0, false);
+    sctl::Vector<Real> gradG_J1(N*COORD_DIM, gradG_J.begin() + N*COORD_DIM*1, false);
+    sctl::Vector<Real> gradG_J2(N*COORD_DIM, gradG_J.begin() + N*COORD_DIM*2, false);
+    LaplaceFxdU.Eval(gradG_J0, sctl::Vector<Real>(N, J.begin() + N*0, false));
+    LaplaceFxdU.Eval(gradG_J1, sctl::Vector<Real>(N, J.begin() + N*1, false));
+    LaplaceFxdU.Eval(gradG_J2, sctl::Vector<Real>(N, J.begin() + N*2, false));
+
+    Bext.ReInit(N * COORD_DIM);
+    for (sctl::Long i = 0; i < N; i++) {
+      for (sctl::Integer k = 0; k < COORD_DIM; k++) {
+        const sctl::Integer k1 = (k+1)%COORD_DIM;
+        const sctl::Integer k2 = (k+2)%COORD_DIM;
+        Bext[k*N+i] = gradG_J[(k1*COORD_DIM+k2)*N+i] - gradG_J[(k2*COORD_DIM+k1)*N+i];
+      }
+    }
+  }
   Bext += Bext_ + 0.5 * B;
 }
 

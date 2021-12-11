@@ -57,7 +57,7 @@ template <class Real> class VirtualCasing {
     static void CrossProd(sctl::Vector<Real>& AcrossB, const sctl::Vector<Real>& A, const sctl::Vector<Real>& B);
 
     sctl::Comm comm_;
-    mutable BIOpWrapper<Real,COORD_DIM,3,3> BiotSavartFxU;
+    //mutable BIOpWrapper<Real,COORD_DIM,3,3> BiotSavartFxU;
     mutable BIOpWrapper<Real,COORD_DIM,1,3> LaplaceFxdU;
     sctl::Vector<biest::Surface<Real>> Svec;
     sctl::Integer digits_;
