@@ -1,3 +1,4 @@
+CC = gcc
 CXX = g++
 CXXFLAGS = -std=c++11 -fopenmp -march=native -Wall # need C++11 and OpenMP
 
@@ -13,7 +14,6 @@ endif
 
 #CXXFLAGS += -DSCTL_MEMDEBUG # Enable memory checks
 CXXFLAGS += -DSCTL_PROFILE=5 -DSCTL_VERBOSE # Enable profiling
-CXXFLAGS += -DSCTL_QUAD_T=__float128 # Enable quadruple precision
 
 #CXXFLAGS += -lblas -DSCTL_HAVE_BLAS # use BLAS
 #CXXFLAGS += -llapack -DSCTL_HAVE_LAPACK # use LAPACK
@@ -26,32 +26,39 @@ CXXFLAGS += -lfftw3 -DSCTL_HAVE_FFTW
 CXXFLAGS += -lfftw3f -DSCTL_HAVE_FFTWF
 CXXFLAGS += -lfftw3l -DSCTL_HAVE_FFTWL
 
-#PSC_INC = -I$(PETSC_DIR)/include -I$(PETSC_DIR)/$(PETSC_ARCH)/include
-#PSC_LIB = -L$(PETSC_DIR)/lib -L$(PETSC_DIR)/$(PETSC_ARCH)/lib -lpetsc
-#CXXFLAGS += $(PSC_INC) $(PSC_LIB) -DSCTL_HAVE_PETSC
-
 RM = rm -f
 MKDIRS = mkdir -p
 
 BINDIR = ./bin
+LIBDIR = ./lib
 SRCDIR = ./src
 OBJDIR = ./obj
 INCDIR = ./include
+
+TARGET_LIB = $(LIBDIR)/libvirtualcasing.a
+TARGET_BIN = $(BINDIR)/virtual-casing \
+						 $(BINDIR)/virtual-casing-c
+
 BIEST_INCDIR = ./BIEST/include
 
-TARGET_BIN = \
-       $(BINDIR)/virtual-casing
+all : $(TARGET_BIN) $(TARGET_LIB)
 
-all : $(TARGET_BIN)
-
-$(BINDIR)/%: $(OBJDIR)/%.o
+$(BINDIR)/%: ./test/%.cpp
 	-@$(MKDIRS) $(dir $@)
-	$(CXX) $(CXXFLAGS) $^ $(LDLIBS) -o $@
+	$(CXX) $(CXXFLAGS) -I$(INCDIR) -I$(BIEST_INCDIR) $^ -o $@
+
+$(BINDIR)/%: ./test/%.c $(TARGET_LIB)
+	-@$(MKDIRS) $(dir $@)
+	$(CC) $(CXXFLAGS) -I$(INCDIR) $^ $(TARGET_LIB) -lm -ldl -lstdc++ -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	-@$(MKDIRS) $(dir $@)
 	$(CXX) $(CXXFLAGS) -I$(INCDIR) -I$(BIEST_INCDIR) -c $^ -o $@
 
+$(TARGET_LIB) : obj/virtual-casing.o
+	-@$(MKDIRS) $(dir $@)
+	ar rcs $@ $^
+
 clean:
-	$(RM) -r $(BINDIR)/* $(OBJDIR)/*
+	$(RM) -r $(BINDIR)/* $(OBJDIR)/* $(LIBDIR)/*
 

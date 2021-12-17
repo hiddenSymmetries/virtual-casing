@@ -1,2 +1,5 @@
 *~
 bin
+lib
+obj
+*.swp

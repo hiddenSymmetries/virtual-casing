@@ -161,168 +161,66 @@ template <class Real, sctl::Integer COORD_DIM, sctl::Integer KDIM0, sctl::Intege
 
       biop = biop_build(Svec, ker, comm_);
     }
-    template <sctl::Integer UPSAMPLE, sctl::Integer PDIM> void SetupSingular1(const sctl::Vector<biest::Surface<Real>>& Svec, const biest::KernelFunction<Real,COORD_DIM,KDIM0,KDIM1>& ker, sctl::Integer RDIM_) {
-      if (RDIM_ >= 100) {
-        constexpr sctl::Integer RDIM = 100;
-        SetupSingular0<UPSAMPLE, PDIM, RDIM>(Svec, ker);
-      } else if (RDIM_ >= 90) {
-        constexpr sctl::Integer RDIM = 90;
-        SetupSingular0<UPSAMPLE, PDIM, RDIM>(Svec, ker);
-      } else if (RDIM_ >= 80) {
-        constexpr sctl::Integer RDIM = 80;
-        SetupSingular0<UPSAMPLE, PDIM, RDIM>(Svec, ker);
-      } else if (RDIM_ >= 70) {
-        constexpr sctl::Integer RDIM = 70;
-        SetupSingular0<UPSAMPLE, PDIM, RDIM>(Svec, ker);
-      } else if (RDIM_ >= 60) {
-        constexpr sctl::Integer RDIM = 60;
-        SetupSingular0<UPSAMPLE, PDIM, RDIM>(Svec, ker);
-      } else if (RDIM_ >= 50) {
-        constexpr sctl::Integer RDIM = 50;
-        SetupSingular0<UPSAMPLE, PDIM, RDIM>(Svec, ker);
-      } else if (RDIM_ >= 40) {
-        constexpr sctl::Integer RDIM = 40;
-        SetupSingular0<UPSAMPLE, PDIM, RDIM>(Svec, ker);
-      } else if (RDIM_ >= 30) {
-        constexpr sctl::Integer RDIM = 30;
-        SetupSingular0<UPSAMPLE, PDIM, RDIM>(Svec, ker);
-      } else if (RDIM_ >= 20) {
-        constexpr sctl::Integer RDIM = 20;
-        SetupSingular0<UPSAMPLE, PDIM, RDIM>(Svec, ker);
-      } else if (RDIM_ >= 10) {
-        constexpr sctl::Integer RDIM = 10;
-        SetupSingular0<UPSAMPLE, PDIM, RDIM>(Svec, ker);
-      } else {
-        constexpr sctl::Integer RDIM = 1;
-        SetupSingular0<UPSAMPLE, PDIM, RDIM>(Svec, ker);
-      }
-    }
-    template <sctl::Integer UPSAMPLE> void SetupSingular2(const sctl::Vector<biest::Surface<Real>>& Svec, const biest::KernelFunction<Real,COORD_DIM,KDIM0,KDIM1>& ker, sctl::Integer PDIM_, sctl::Integer RDIM_) {
-      sctl::Integer SurfDim = std::min(Svec[0].NPol(), Svec[0].NTor());
-      if (PDIM_ >= 64 && SurfDim > 64*2+1) {
-        static constexpr sctl::Integer PDIM = 64;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 60 && SurfDim > 60*2+1) {
-        static constexpr sctl::Integer PDIM = 60;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 56 && SurfDim > 56*2+1) {
-        static constexpr sctl::Integer PDIM = 56;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 52 && SurfDim > 52*2+1) {
-        static constexpr sctl::Integer PDIM = 52;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 48 && SurfDim > 48*2+1) {
-        static constexpr sctl::Integer PDIM = 48;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 44 && SurfDim > 44*2+1) {
-        static constexpr sctl::Integer PDIM = 44;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 40 && SurfDim > 40*2+1) {
-        static constexpr sctl::Integer PDIM = 40;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 36 && SurfDim > 36*2+1) {
-        static constexpr sctl::Integer PDIM = 36;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 32 && SurfDim > 32*2+1) {
-        static constexpr sctl::Integer PDIM = 32;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 28 && SurfDim > 28*2+1) {
-        static constexpr sctl::Integer PDIM = 28;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 24 && SurfDim > 24*2+1) {
-        static constexpr sctl::Integer PDIM = 24;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 20 && SurfDim > 20*2+1) {
-        static constexpr sctl::Integer PDIM = 20;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 16 && SurfDim > 16*2+1) {
-        static constexpr sctl::Integer PDIM = 16;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >= 12 && SurfDim > 12*2+1) {
-        static constexpr sctl::Integer PDIM = 12;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else if (PDIM_ >=  8 && SurfDim >  8*2+1) {
-        static constexpr sctl::Integer PDIM =  8;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      } else {
-        static constexpr sctl::Integer PDIM =  6;
-        SetupSingular1<UPSAMPLE,PDIM>(Svec, ker, RDIM_);
-      }
-    }
-    void SetupSingular3(const sctl::Vector<biest::Surface<Real>>& Svec, const biest::KernelFunction<Real,COORD_DIM,KDIM0,KDIM1>& ker, sctl::Integer UPSAMPLE_, sctl::Integer PDIM_, sctl::Integer RDIM_) {
-      if (RDIM_ >= 10) {
-        SetupSingular2<10>(Svec, ker, PDIM_, RDIM_);
-      } else if (RDIM_ >= 9) {
-        SetupSingular2< 9>(Svec, ker, PDIM_, RDIM_);
-      } else if (RDIM_ >= 8) {
-        SetupSingular2< 8>(Svec, ker, PDIM_, RDIM_);
-      } else if (RDIM_ >= 7) {
-        SetupSingular2< 7>(Svec, ker, PDIM_, RDIM_);
-      } else if (RDIM_ >= 6) {
-        SetupSingular2< 6>(Svec, ker, PDIM_, RDIM_);
-      } else if (RDIM_ >= 5) {
-        SetupSingular2< 5>(Svec, ker, PDIM_, RDIM_);
-      } else if (RDIM_ >= 4) {
-        SetupSingular2< 4>(Svec, ker, PDIM_, RDIM_);
-      } else if (RDIM_ >= 3) {
-        SetupSingular2< 3>(Svec, ker, PDIM_, RDIM_);
-      } else if (RDIM_ >= 2) {
-        SetupSingular2< 2>(Svec, ker, PDIM_, RDIM_);
-      } else {
-        SetupSingular2< 1>(Svec, ker, PDIM_, RDIM_);
-      }
-    }
-
     template <sctl::Integer UPSAMPLE> void SetupSingular_(const sctl::Vector<biest::Surface<Real>>& Svec, const biest::KernelFunction<Real,COORD_DIM,KDIM0,KDIM1>& ker, sctl::Integer PDIM_) {
-      sctl::Integer SurfDim = std::min(Svec[0].NPol(), Svec[0].NTor());
-      if (PDIM_ >= 64 && SurfDim > 64*2+1) {
+      const sctl::Integer SurfDim = std::min(Svec[0].NPol(), Svec[0].NTor());
+      SCTL_ASSERT(Svec.Dim() == 1);
+      if (PDIM_ >= 64 && SurfDim*UPSAMPLE > 64*2) {
         static constexpr sctl::Integer PDIM = 64, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 60 && SurfDim > 60*2+1) {
+      } else if (PDIM_ >= 60 && SurfDim*UPSAMPLE > 60*2) {
         static constexpr sctl::Integer PDIM = 60, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 56 && SurfDim > 56*2+1) {
+      } else if (PDIM_ >= 56 && SurfDim*UPSAMPLE > 56*2) {
         static constexpr sctl::Integer PDIM = 56, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 52 && SurfDim > 52*2+1) {
+      } else if (PDIM_ >= 52 && SurfDim*UPSAMPLE > 52*2) {
         static constexpr sctl::Integer PDIM = 52, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 48 && SurfDim > 48*2+1) {
+      } else if (PDIM_ >= 48 && SurfDim*UPSAMPLE > 48*2) {
         static constexpr sctl::Integer PDIM = 48, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 44 && SurfDim > 44*2+1) {
+      } else if (PDIM_ >= 44 && SurfDim*UPSAMPLE > 44*2) {
         static constexpr sctl::Integer PDIM = 44, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 40 && SurfDim > 40*2+1) {
+      } else if (PDIM_ >= 40 && SurfDim*UPSAMPLE > 40*2) {
         static constexpr sctl::Integer PDIM = 40, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 36 && SurfDim > 36*2+1) {
+      } else if (PDIM_ >= 36 && SurfDim*UPSAMPLE > 36*2) {
         static constexpr sctl::Integer PDIM = 36, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 32 && SurfDim > 32*2+1) {
+      } else if (PDIM_ >= 32 && SurfDim*UPSAMPLE > 32*2) {
         static constexpr sctl::Integer PDIM = 32, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 28 && SurfDim > 28*2+1) {
+      } else if (PDIM_ >= 28 && SurfDim*UPSAMPLE > 28*2) {
         static constexpr sctl::Integer PDIM = 28, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 24 && SurfDim > 24*2+1) {
+      } else if (PDIM_ >= 24 && SurfDim*UPSAMPLE > 24*2) {
         static constexpr sctl::Integer PDIM = 24, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 20 && SurfDim > 20*2+1) {
+      } else if (PDIM_ >= 20 && SurfDim*UPSAMPLE > 20*2) {
         static constexpr sctl::Integer PDIM = 20, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 16 && SurfDim > 16*2+1) {
+      } else if (PDIM_ >= 16 && SurfDim*UPSAMPLE > 16*2) {
         static constexpr sctl::Integer PDIM = 16, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >= 12 && SurfDim > 12*2+1) {
+      } else if (PDIM_ >= 12 && SurfDim*UPSAMPLE > 12*2) {
         static constexpr sctl::Integer PDIM = 12, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
-      } else if (PDIM_ >=  8 && SurfDim >  8*2+1) {
+      } else if (PDIM_ >=  8 && SurfDim*UPSAMPLE >  8*2) {
         static constexpr sctl::Integer PDIM =  8, RDIM = PDIM*1.5;
+        SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
+      } else if (SurfDim*UPSAMPLE > 12) {
+        static constexpr sctl::Integer PDIM =  6, RDIM = PDIM*1.5;
         SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
       } else {
         static constexpr sctl::Integer PDIM =  6, RDIM = PDIM*1.5;
-        SetupSingular0<UPSAMPLE,PDIM,RDIM>(Svec, ker);
+        if (SurfDim > 6) SetupSingular0< 2,PDIM,RDIM>(Svec, ker);
+        else if (SurfDim > 4) SetupSingular0< 3,PDIM,RDIM>(Svec, ker);
+        else if (SurfDim == 4) SetupSingular0< 4,PDIM,RDIM>(Svec, ker);
+        else if (SurfDim == 3) SetupSingular0< 6,PDIM,RDIM>(Svec, ker);
+        else if (SurfDim == 2) SetupSingular0< 7,PDIM,RDIM>(Svec, ker);
+        else if (SurfDim == 1) SetupSingular0<13,PDIM,RDIM>(Svec, ker);
+        else SCTL_ASSERT(false);
       }
     }
 
@@ -389,7 +287,7 @@ template <class Real> void VirtualCasing<Real>::ComputeBext(sctl::Vector<Real>& 
     LaplaceFxdU.Eval(gradG_J1, sctl::Vector<Real>(N, J.begin() + N*1, false));
     LaplaceFxdU.Eval(gradG_J2, sctl::Vector<Real>(N, J.begin() + N*2, false));
 
-    Bext.ReInit(N * COORD_DIM);
+    if (Bext.Dim() != N * COORD_DIM) Bext.ReInit(N * COORD_DIM);
     for (sctl::Long i = 0; i < N; i++) {
       for (sctl::Integer k = 0; k < COORD_DIM; k++) {
         const sctl::Integer k1 = (k+1)%COORD_DIM;
@@ -435,3 +333,179 @@ template <class Real> void VirtualCasing<Real>::CrossProd(sctl::Vector<Real>& Ac
   }
 };
 
+template <class Real> void VirtualCasingTestData<Real>::SurfaceCoordinates(sctl::Vector<Real>& X, int Nt, int Np, biest::SurfType surf_type) {
+  biest::Surface<Real> S(Nt,Np, surf_type);
+  X = S.Coord();
+}
+
+template <class Real> void VirtualCasingTestData<Real>::BFieldData(sctl::Vector<Real>& Bext, sctl::Vector<Real>& Bint, int Nt, int Np, const sctl::Vector<Real>& X) {
+  constexpr sctl::Integer COORD_DIM = 3;
+  auto WriteVTK_ = [](std::string fname, const sctl::Vector<sctl::Vector<Real>>& coords, const sctl::Vector<sctl::Vector<Real>>& values) {
+    biest::VTKData data;
+    typedef biest::VTKData::VTKReal VTKReal;
+    auto& point_coord =data.point_coord ;
+    auto& point_value =data.point_value ;
+    auto& line_connect=data.line_connect;
+    auto& line_offset =data.line_offset ;
+    constexpr sctl::Integer COORD_DIM = biest::VTKData::COORD_DIM;
+
+    SCTL_ASSERT(coords.Dim() == values.Dim());
+    for (sctl::Long j = 0; j < coords.Dim(); j++) { // set point_coord, line_connect
+      const auto& coord = coords[j];
+      const auto& value = values[j];
+      sctl::Long N = coord.Dim() / COORD_DIM;
+      sctl::Long dof = value.Dim() / N;
+      SCTL_ASSERT(value.Dim() == dof * N);
+      for (sctl::Long i = 0; i < N; i++) {
+        line_connect.push_back(point_coord.size()/COORD_DIM);
+        point_coord.push_back((VTKReal)coord[0*N+i]);
+        point_coord.push_back((VTKReal)coord[1*N+i]);
+        point_coord.push_back((VTKReal)coord[2*N+i]);
+        for (sctl::Long k = 0; k < dof; k++) {
+          point_value.push_back((VTKReal)value[k*N+i]);
+        }
+      }
+      line_offset.push_back(line_connect.size());
+    }
+    data.WriteVTK(fname.c_str(), sctl::Comm::Self());
+  };
+  auto eval_BiotSavart = [](const sctl::Vector<Real>& Xt, const sctl::Vector<sctl::Vector<Real>>& source, const sctl::Vector<sctl::Vector<Real>>& density) {
+    const auto& kernel = biest::BiotSavart3D<Real>::FxU();
+    sctl::Long Nt = Xt.Dim() / COORD_DIM;
+    SCTL_ASSERT(Xt.Dim() == COORD_DIM * Nt);
+    SCTL_ASSERT(source.Dim() == density.Dim());
+
+    sctl::Vector<Real> B(COORD_DIM*Nt);
+    B = 0;
+    for (sctl::Long i = 0; i < source.Dim(); i++) {
+      const auto& Xs = source[i];
+      const auto& Fs = density[i];
+      sctl::Long Ns = Xs.Dim() / COORD_DIM;
+      SCTL_ASSERT(Xs.Dim() == COORD_DIM * Ns);
+      SCTL_ASSERT(Fs.Dim() == COORD_DIM * Ns);
+      sctl::Vector<Real> SrcNormal(COORD_DIM*Ns);
+      kernel(Xs,SrcNormal,Fs, Xt,B);
+    }
+    return B;
+  };
+  auto add_source_loop = [](sctl::Vector<sctl::Vector<Real>>& source, sctl::Vector<sctl::Vector<Real>>& density, std::initializer_list<Real> coord, std::initializer_list<Real> normal, Real radius) {
+    auto cross_norm = [](const sctl::Vector<Real>& A, const sctl::Vector<Real>& B) {
+      sctl::Vector<Real> C(COORD_DIM);
+      C[0] = A[1]*B[2] - B[1]*A[2];
+      C[1] = A[2]*B[0] - B[2]*A[0];
+      C[2] = A[0]*B[1] - B[0]*A[1];
+      Real r = sctl::sqrt<Real>(C[0]*C[0]+C[1]*C[1]+C[2]*C[2]);
+      return C*(1/r);
+    };
+    sctl::Vector<Real> coord_(COORD_DIM), normal_(COORD_DIM), e0(COORD_DIM), e1(COORD_DIM);
+    coord_[0] = coord.begin()[0];
+    coord_[1] = coord.begin()[1];
+    coord_[2] = coord.begin()[2];
+    normal_[0] = normal.begin()[0];
+    normal_[1] = normal.begin()[1];
+    normal_[2] = normal.begin()[2];
+    Real normal_scal = 1/sctl::sqrt<Real>(normal_[0]*normal_[0]+normal_[1]*normal_[1]+normal_[2]*normal_[2]);
+    normal_ *= normal_scal;
+
+    e0[0] = drand48();
+    e0[1] = drand48();
+    e0[2] = drand48();
+    e0 = cross_norm(e0,normal_)*radius;
+    e1 = cross_norm(e0,normal_)*radius;
+
+    sctl::Long N = 10000;
+    sctl::Vector<Real> X(COORD_DIM * N);
+    sctl::Vector<Real> dX(COORD_DIM * N);
+    for (sctl::Long i = 0; i < N; i++) {
+      Real t = 2*sctl::const_pi<Real>()*i/N;
+      sctl::Vector<Real> r = coord_ + e0*sctl::sin<Real>(t) + e1*sctl::cos<Real>(t);
+      sctl::Vector<Real> dr = e0*sctl::cos<Real>(t) - e1*sctl::sin<Real>(t);
+      X[0*N+i] = r[0];
+      X[1*N+i] = r[1];
+      X[2*N+i] = r[2];
+      dX[0*N+i] = dr[0];
+      dX[1*N+i] = dr[1];
+      dX[2*N+i] = dr[2];
+    }
+    source.PushBack(X);
+    density.PushBack(dX);
+  };
+  auto DotProd = [](sctl::Vector<Real>& AdotB, const sctl::Vector<Real>& A, const sctl::Vector<Real>& B) {
+    sctl::Long N = A.Dim() / COORD_DIM;
+    SCTL_ASSERT(A.Dim() == COORD_DIM * N);
+    SCTL_ASSERT(B.Dim() == COORD_DIM * N);
+    if (AdotB.Dim() != N) AdotB.ReInit(N);
+    for (sctl::Long i = 0; i < N; i++) {
+      Real AdotB_ = 0;
+      for (sctl::Integer k = 0; k < COORD_DIM; k++) {
+        AdotB_ += A[k*N+i] * B[k*N+i];
+      }
+      AdotB[i] = AdotB_;
+    }
+  };
+
+  sctl::Comm comm = sctl::Comm::Self();
+  sctl::Vector<biest::Surface<Real>> Svec(1);
+  Svec[0] = biest::Surface<Real>(Nt,Np);
+  Svec[0].Coord() = X;
+
+  sctl::Vector<sctl::Vector<Real>> source0, density0;
+  sctl::Vector<sctl::Vector<Real>> source1, density1;
+  { // Set inside sources (source0, density0)
+    sctl::Long N = 10000;
+    sctl::Vector<Real> X(COORD_DIM*N), dX(COORD_DIM*N);
+    { // Set X, dX
+      sctl::Long Nt = 100, Np = 100;
+      sctl::Vector<Real> coord(COORD_DIM*Nt);
+      { // Set coord
+        auto S = biest::Surface<Real>(Nt,Np);
+        biest::SurfaceOp<Real>::Upsample(Svec[0].Coord(), Svec[0].NTor(), Svec[0].NPol(), S.Coord(), Nt, Np);
+
+        sctl::Vector<Real> normal, dX;
+        biest::SurfaceOp<Real> SurfOp(comm, Nt, Np);
+        SurfOp.Grad2D(dX, S.Coord());
+        SurfOp.SurfNormalAreaElem(&normal, nullptr, dX, &S.Coord());
+        S.Coord() += -2.17*normal;
+
+        coord = 0;
+        for (sctl::Long t = 0; t < Nt; t++) {
+          for (sctl::Long p = 0; p < Np; p++) {
+            coord[0*Nt+t] += S.Coord()[(0*Nt+t)*Np+p]/Np;
+            coord[1*Nt+t] += S.Coord()[(1*Nt+t)*Np+p]/Np;
+            coord[2*Nt+t] += S.Coord()[(2*Nt+t)*Np+p]/Np;
+          }
+        }
+      }
+
+      sctl::Vector<Real> dX_;
+      biest::SurfaceOp<Real>::Upsample(coord,Nt,1, X,N,1);
+      biest::SurfaceOp<Real> SurfOp(comm,N,1);
+      SurfOp.Grad2D(dX_, X);
+      for (sctl::Long i = 0; i < N; i++) {
+        for (sctl::Integer k = 0; k < COORD_DIM; k++) {
+          dX[k*N+i] = dX_[(2*k+0)*N+i];
+        }
+      }
+    }
+    source0.PushBack(X);
+    density0.PushBack(dX*0.05);
+  }
+  { // Set outside sources (source1, density1)
+    const sctl::Long N = source0[0].Dim()/COORD_DIM;
+    const sctl::StaticArray<Real,COORD_DIM> X{source0[0][0*N],source0[0][1*N],source0[0][2*N]};
+    const sctl::StaticArray<Real,COORD_DIM> Xn{density0[0][0*N],density0[0][1*N],density0[0][2*N]};
+    const Real R = sctl::sqrt<Real>(X[0]*X[0] + X[1]*X[1] + X[2]*X[2]);
+    add_source_loop(source1, density1, {X[0],X[1],X[2]}, {Xn[0],Xn[1],Xn[2]}, R);
+  }
+
+  Bint = eval_BiotSavart(Svec[0].Coord(), source0, density0);
+  Bext = eval_BiotSavart(Svec[0].Coord(), source1, density1);
+
+  // Visualization
+  //WriteVTK_("loop0", source0, density0);
+  //WriteVTK_("loop1", source1, density1);
+  //biest::WriteVTK("S", Svec, Bext+Bint);
+
+  SCTL_UNUSED(WriteVTK_);
+  SCTL_UNUSED(DotProd);
+}
