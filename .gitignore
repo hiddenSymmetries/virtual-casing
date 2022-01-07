@@ -3,3 +3,6 @@ bin
 lib
 obj
 *.swp
+*.o
+fort.*
+int2*
