@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15.0)
+cmake_minimum_required(VERSION 3.16)
 project(virtual_casing)
 #set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
@@ -75,108 +75,61 @@ else()
     set(CMAKE_CXX_FLAGS "-O3 -march=native -mfma -ffp-contract=fast")
 endif()
 
-find_package(OpenMP)
-# find_package(Boost 1.60.0)
-# if(Boost_FOUND)
-#     message(STATUS "Boost version is ${Boost_VERSION_STRING}")
-#     message(STATUS "Boost include dirs are ${Boost_INCLUDE_DIRS}")
-# else()
-#     message(STATUS "Downloading and installing boost.")
-#     # For some external project macros
-#     include(ExternalProject)
-# 
-#     # Download boost from git and build the headers
-#     set( boost_DIR ${CMAKE_CURRENT_BINARY_DIR}/thirdparty/boost )
-#     set( boost_target boost)
-# 
-#     ExternalProject_Add(
-#         ${boost_target}
-#         PREFIX ${boost_DIR}
-#         GIT_REPOSITORY https://github.com/boostorg/boost.git
-#         GIT_TAG boost-1.76.0
-#         GIT_SHALLOW TRUE
-#         GIT_PROGRESS TRUE
-#         GIT_SUBMODULES tools/build tools/boost_install libs/config libs/numeric
-#             libs/math libs/type_traits libs/predef libs/assert libs/static_assert
-#             libs/throw_exception libs/core libs/serialization libs/preprocessor libs/mpl
-#             libs/utility libs/typeof libs/array libs/units libs/integer libs/fusion
-#             libs/range libs/iterator libs/concept_check libs/detail libs/function_types
-#             libs/lexical_cast libs/container libs/move libs/smart_ptr libs/multi_array
-#             libs/functional libs/function libs/type_index libs/container_hash libs/bind
-#         CONFIGURE_COMMAND ./bootstrap.sh --prefix=<PREFIX>
-#         BUILD_COMMAND ./b2 headers --prefix=${boost_DIR}
-#         BUILD_IN_SOURCE 1
-#         INSTALL_COMMAND ""
-#     )
-# 
-#     set(Boost_INCLUDE_DIRS ${boost_DIR}/src/${boost_target})
-#     message(STATUS "Boost include dirs are ${Boost_INCLUDE_DIRS}")
-# endif()
+find_package(OpenMP REQUIRED)
 
-#add_subdirectory(thirdparty/pybind11)
+add_subdirectory(thirdparty/pybind11)
 # add_subdirectory(thirdparty/fmt)
 # set(XTENSOR_USE_OPENMP 0)
 # set(XTENSOR_USE_TBB 0)
 
 
-#pybind11_add_module(${PROJECT_NAME}
-    # src/simsoptpp/python.cpp src/simsoptpp/python_surfaces.cpp src/simsoptpp/python_curves.cpp
-    # src/simsoptpp/python_magneticfield.cpp src/simsoptpp/python_tracing.cpp
-    # src/simsoptpp/biot_savart_py.cpp src/simsoptpp/biot_savart_vjp_py.cpp
-    # src/simsoptpp/regular_grid_interpolant_3d_py.cpp
-    # src/simsoptpp/curve.cpp src/simsoptpp/curverzfourier.cpp src/simsoptpp/curvexyzfourier.cpp
-    # src/simsoptpp/surface.cpp src/simsoptpp/surfacerzfourier.cpp src/simsoptpp/surfacexyzfourier.cpp
-    # src/simsoptpp/dommaschk.cpp src/simsoptpp/reiman.cpp src/simsoptpp/tracing.cpp 
-    # src/simsoptpp/magneticfield_biotsavart.cpp src/simsoptpp/python_boozermagneticfield.cpp
-    # src/simsoptpp/boozerradialinterpolant.cpp
-#    )
+pybind11_add_module(${PROJECT_NAME} src/python.cpp)
 
-#set_target_properties(${PROJECT_NAME}
-#    PROPERTIES
-#    CXX_STANDARD 14
-#    CXX_STANDARD_REQUIRED ON)
+set_target_properties(${PROJECT_NAME}
+    PROPERTIES
+    CXX_STANDARD 14
+    CXX_STANDARD_REQUIRED ON)
+add_executable(vc_testing EXCLUDE_FROM_ALL test/virtual-casing.cpp)
+set_target_properties(vc_testing
+    PROPERTIES
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON)
 
 #target_include_directories(${PROJECT_NAME} PRIVATE 
     # "thirdparty/xtensor/include" "thirdparty/xtensor-python/include" "thirdparty/xsimd/include" "thirdparty/xtl/include" "thirdparty/eigen"
 #    ${Python_NumPy_INCLUDE_DIRS} "include" "BIEST/include")
 # target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
 
-# if(NOT Boost_FOUND)
-#     add_dependencies(${PROJECT_NAME} ${boost_target})
-# endif()
-# target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
-# target_link_libraries(${PROJECT_NAME} PRIVATE pybind11::module Boost::headers)
-
-
-add_executable(vc_testing test/virtual-casing.cpp)
-set_target_properties(vc_testing
-    PROPERTIES
-    CXX_STANDARD 11
-    CXX_STANDARD_REQUIRED ON)
 target_include_directories(vc_testing PRIVATE  "include" "BIEST/include")
-# target_link_libraries(profiling PRIVATE fmt::fmt)
+target_include_directories(${PROJECT_NAME} PRIVATE  "include" "BIEST/include")
+target_include_directories(${PROJECT_NAME} PRIVATE  ${Python_NumPy_INCLUDE_DIRS})
 
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(vc_testing PRIVATE OpenMP::OpenMP_CXX)
-    #target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
-endif()
+target_link_libraries(vc_testing PRIVATE OpenMP::OpenMP_CXX)
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+
 if(FFTW_FOUND)
     target_link_libraries (vc_testing PRIVATE FFTW::Double)
+    target_link_libraries (${PROJECT_NAME} PRIVATE FFTW::Double)
     if (FFTW_FLOAT_LIB_FOUND)
         target_link_libraries (vc_testing PRIVATE FFTW::Float)
+        target_link_libraries (${PROJECT_NAME} PRIVATE FFTW::Float)
     endif()
     if (FFTW_LONGDOUBLE_LIB_FOUND)
         target_link_libraries (vc_testing PRIVATE FFTW::LongDouble)
+        target_link_libraries (${PROJECT_NAME} PRIVATE FFTW::LongDouble)
     endif()
     if (FFTW_FLOAT_OPENMP_FOUND)
         target_link_libraries (vc_testing PRIVATE FFTW::DoubleOpenMP)
+        target_link_libraries (${PROJECT_NAME} PRIVATE FFTW::DoubleOpenMP)
     endif()
 endif()
 if (BLAS_FOUND)
 	target_link_libraries (vc_testing PRIVATE ${BLAS_LIBRARIES})
+	target_link_libraries (${PROJECT_NAME} PRIVATE ${BLAS_LIBRARIES})
 endif ()
 if (LAPACK_FOUND)
 	target_link_libraries (vc_testing PRIVATE ${LAPACK_LIBRARIES})
+	target_link_libraries (${PROJECT_NAME} PRIVATE ${LAPACK_LIBRARIES})
 endif ()
 
 
