@@ -6,17 +6,25 @@ extern "C" {
 #endif
 
 void GenerateVirtualCasingTestDataF(float* Bext, float* Bint, long Nt, long Np, const float* X) {
-  sctl::Vector<float> Bext_(3*Nt*Np, sctl::Ptr2Itr<float>(Bext, 3*Nt*Np), false);
-  sctl::Vector<float> Bint_(3*Nt*Np, sctl::Ptr2Itr<float>(Bint, 3*Nt*Np), false);
-  const sctl::Vector<float> X_(3*Nt*Np, (sctl::Iterator<float>)sctl::Ptr2ConstItr<float>(X, 3*Nt*Np), false);
+  std::vector<float> Bext_(3*Nt*Np);
+  std::vector<float> Bint_(3*Nt*Np);
+  const std::vector<float> X_(X, X+3*Nt*Np);
   VirtualCasingTestData<float>::BFieldData(Bext_, Bint_, Nt, Np, X_);
+  for (long i = 0; i < 3*Nt*Np; i++) {
+    Bext[i] = Bext_[i];
+    Bint[i] = Bint_[i];
+  }
 }
 
 void GenerateVirtualCasingTestDataD(double* Bext, double* Bint, long Nt, long Np, const double* X) {
-  sctl::Vector<double> Bext_(3*Nt*Np, sctl::Ptr2Itr<double>(Bext, 3*Nt*Np), false);
-  sctl::Vector<double> Bint_(3*Nt*Np, sctl::Ptr2Itr<double>(Bint, 3*Nt*Np), false);
-  const sctl::Vector<double> X_(3*Nt*Np, (sctl::Iterator<double>)sctl::Ptr2ConstItr<double>(X, 3*Nt*Np), false);
+  std::vector<double> Bext_(3*Nt*Np);
+  std::vector<double> Bint_(3*Nt*Np);
+  const std::vector<double> X_(X, X+3*Nt*Np);
   VirtualCasingTestData<double>::BFieldData(Bext_, Bint_, Nt, Np, X_);
+  for (long i = 0; i < 3*Nt*Np; i++) {
+    Bext[i] = Bext_[i];
+    Bint[i] = Bint_[i];
+  }
 }
 
 void* VirtualCasingCreateContextF() {
@@ -37,12 +45,12 @@ void VirtualCasingDestroyContextD(void** ctx) {
 
 void VirtualCasingSetSurfaceF(long Nt, long Np, const float* X, void* ctx) {
   VirtualCasing<float>& virtual_casing = *(VirtualCasing<float>*)ctx;
-  const sctl::Vector<float> X_(3*Nt*Np, (sctl::Iterator<float>)sctl::Ptr2ConstItr<double>(X, 3*Nt*Np), false);
+  const std::vector<float> X_(X, X+3*Nt*Np);
   virtual_casing.SetSurface(Nt, Np, X_);
 }
 void VirtualCasingSetSurfaceD(long Nt, long Np, const double* X, void* ctx) {
   VirtualCasing<double>& virtual_casing = *(VirtualCasing<double>*)ctx;
-  const sctl::Vector<double> X_(3*Nt*Np, (sctl::Iterator<double>)sctl::Ptr2ConstItr<double>(X, 3*Nt*Np), false);
+  const std::vector<double> X_(X, X+3*Nt*Np);
   virtual_casing.SetSurface(Nt, Np, X_);
 }
 
@@ -56,16 +64,18 @@ void VirtualCasingSetAccuracyD(int digits, void* ctx) {
 }
 
 void VirtualCasingComputeBextF(float* Bext, const float* B, long Nt, long Np, const void* ctx) {
-  sctl::Vector<float> Bext_(3*Nt*Np, sctl::Ptr2Itr<float>(Bext, 3*Nt*Np), false);
-  const sctl::Vector<float> B_(3*Nt*Np, (sctl::Iterator<float>)sctl::Ptr2ConstItr<float>(B, 3*Nt*Np), false);
+  std::vector<float> Bext_(3*Nt*Np);
+  const std::vector<float> B_(B, B+3*Nt*Np);
   const VirtualCasing<float>& virtual_casing = *(VirtualCasing<float>*)ctx;
   virtual_casing.ComputeBext(Bext_, B_);
+  for (long i = 0; i < 3*Nt*Np; i++) Bext[i] = Bext_[i];
 }
 void VirtualCasingComputeBextD(double* Bext, const double* B, long Nt, long Np, const void* ctx) {
-  sctl::Vector<double> Bext_(3*Nt*Np, sctl::Ptr2Itr<double>(Bext, 3*Nt*Np), false);
-  const sctl::Vector<double> B_(3*Nt*Np, (sctl::Iterator<double>)sctl::Ptr2ConstItr<double>(B, 3*Nt*Np), false);
+  std::vector<double> Bext_(3*Nt*Np);
+  const std::vector<double> B_(B, B+3*Nt*Np);
   const VirtualCasing<double>& virtual_casing = *(VirtualCasing<double>*)ctx;
   virtual_casing.ComputeBext(Bext_, B_);
+  for (long i = 0; i < 3*Nt*Np; i++) Bext[i] = Bext_[i];
 }
 
 #ifdef __cplusplus

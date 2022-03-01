@@ -2,7 +2,7 @@
 
 template <class Real> void test(long Nt, long Np, int digits, biest::SurfType surf_type) {
   // Construct the surface
-  sctl::Vector<Real> X(3*Nt*Np);
+  std::vector<Real> X(3*Nt*Np);
   VirtualCasingTestData<Real>::SurfaceCoordinates(X, Nt, Np, surf_type);
   //for (long t = 0; t < Nt; t++) { // toroidal direction
   //  for (long p = 0; p < Np; p++) { // poloidal direction
@@ -16,9 +16,10 @@ template <class Real> void test(long Nt, long Np, int digits, biest::SurfType su
   //}
 
   // Generate B fields for testing virtual-casing principle
-  sctl::Vector<Real> Bext, Bint, B;
+  std::vector<Real> Bext, Bint, B;
   VirtualCasingTestData<Real>::BFieldData(Bext, Bint, Nt, Np, X);
-  B = Bext + Bint;
+  B = Bint;
+  for (long i = 0; i < (long)B.size(); i++) B[i] += Bext[i];
 
   // Setup
   VirtualCasing<Real> virtual_casing;
@@ -26,12 +27,13 @@ template <class Real> void test(long Nt, long Np, int digits, biest::SurfType su
   virtual_casing.SetAccuracy(digits);
 
   // Compute Bext field
-  sctl::Vector<Real> Bext_;
+  std::vector<Real> Bext_;
   virtual_casing.ComputeBext(Bext_, B);
 
   // print error
-  auto Berr = Bext - Bext_;
+  auto Berr = Bext;
   Real max_err = 0, max_val = 0;
+  for (long i = 0; i < (long)Berr.size(); i++) Berr[i] -= Bext_[i];
   for (const auto& x:B   ) max_val = std::max<Real>(max_val,fabs(x));
   for (const auto& x:Berr) max_err = std::max<Real>(max_err,fabs(x));
   std::cout<<"Maximum relative error: "<<max_err/max_val<<'\n';

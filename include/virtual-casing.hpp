@@ -23,7 +23,7 @@ template <class Real> class VirtualCasing {
      * @param[in] X the surface coordinates in the order {x11, x12, ..., x1Np,
      * x21, x22, ... , xNtNp, y11, ... , z11, ...}.
      */
-    void SetSurface(sctl::Long Nt, sctl::Integer Np, const sctl::Vector<Real>& X);
+    void SetSurface(sctl::Long Nt, sctl::Integer Np, const std::vector<Real>& X);
 
     /**
      * Set approximate accuracy required.
@@ -45,7 +45,7 @@ template <class Real> class VirtualCasing {
      * where Nt and Np are the number of discretizations in toroidal and
      * poloidal directions.
      */
-    void ComputeBext(sctl::Vector<Real>& Bext, const sctl::Vector<Real>& B) const;
+    void ComputeBext(std::vector<Real>& Bext, const std::vector<Real>& B) const;
 
   private:
 
@@ -83,7 +83,7 @@ template <class Real> class VirtualCasingTestData {
      * AxisymNarrow, RotatingEllipseWide, RotatingEllipseNarrow, Quas3, LHD,
      * W7X, Stell}
      */
-    static void SurfaceCoordinates(sctl::Vector<Real>& X, int Nt, int Np, biest::SurfType surf_type = biest::SurfType::AxisymNarrow);
+    static void SurfaceCoordinates(std::vector<Real>& X, int Nt, int Np, biest::SurfType surf_type = biest::SurfType::AxisymNarrow);
 
     /**
      * Generate B field data to be used with class VirtualCasing.
@@ -99,7 +99,7 @@ template <class Real> class VirtualCasingTestData {
      * @param[in] X the surface coordinates in the order {x11, x12, ..., x1Np,
      * x21, x22, ... , xNtNp, y11, ... , z11, ...}.
      */
-    static void BFieldData(sctl::Vector<Real>& Bext, sctl::Vector<Real>& Bint, int Nt, int Np, const sctl::Vector<Real>& X);
+    static void BFieldData(std::vector<Real>& Bext, std::vector<Real>& Bint, int Nt, int Np, const std::vector<Real>& X);
 };
 
 #include <virtual-casing.txx>
