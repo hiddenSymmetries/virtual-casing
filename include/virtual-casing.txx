@@ -262,7 +262,8 @@ template <class Real> void VirtualCasing<Real>::SetAccuracy(sctl::Integer digits
   digits_ = digits;
 }
 
-template <class Real> void VirtualCasing<Real>::ComputeBext(std::vector<Real>& Bext, const std::vector<Real>& B_) const {
+template <class Real>
+std::vector<Real> VirtualCasing<Real>::ComputeBext(const std::vector<Real>& B_) const {
   if (dosetup) {
     //BiotSavartFxU.SetupSingular(Svec, biest::BiotSavart3D<Real>::FxU(), digits_);
     LaplaceFxdU.SetupSingular(Svec, biest::Laplace3D<Real>::FxdU(), digits_);
@@ -277,7 +278,7 @@ template <class Real> void VirtualCasing<Real>::ComputeBext(std::vector<Real>& B
   DotProd(BdotN, B, normal);
   CrossProd(J, normal, B);
   LaplaceFxdU.Eval(Bext_, BdotN);
-  { //BiotSavartFxU.Eval(Bext, J);
+  //{ //BiotSavartFxU.Eval(Bext, J);
     const sctl::Long N = J.Dim() / COORD_DIM;
     sctl::Vector<Real> gradG_J(N * COORD_DIM * COORD_DIM); gradG_J = 0;
     sctl::Vector<Real> gradG_J0(N*COORD_DIM, gradG_J.begin() + N*COORD_DIM*0, false);
@@ -287,7 +288,8 @@ template <class Real> void VirtualCasing<Real>::ComputeBext(std::vector<Real>& B
     LaplaceFxdU.Eval(gradG_J1, sctl::Vector<Real>(N, J.begin() + N*1, false));
     LaplaceFxdU.Eval(gradG_J2, sctl::Vector<Real>(N, J.begin() + N*2, false));
 
-    if ((sctl::Long)Bext.size() != N * COORD_DIM) Bext.resize(N * COORD_DIM);
+    //if ((sctl::Long)Bext.size() != N * COORD_DIM) Bext.resize(N * COORD_DIM);
+    std::vector<Real> Bext(N * COORD_DIM);
     for (sctl::Long i = 0; i < N; i++) {
       for (sctl::Integer k = 0; k < COORD_DIM; k++) {
         const sctl::Integer k1 = (k+1)%COORD_DIM;
@@ -295,10 +297,11 @@ template <class Real> void VirtualCasing<Real>::ComputeBext(std::vector<Real>& B
         Bext[k*N+i] = gradG_J[(k1*COORD_DIM+k2)*N+i] - gradG_J[(k2*COORD_DIM+k1)*N+i];
       }
     }
-  }
+  //}
   for (sctl::Long i = 0; i < (sctl::Long)Bext.size(); i++) {
     Bext[i] += Bext_[i] + 0.5 * B[i];
   }
+  return Bext;
 }
 
 template <class Real> void VirtualCasing<Real>::DotProd(sctl::Vector<Real>& AdotB, const sctl::Vector<Real>& A, const sctl::Vector<Real>& B) {

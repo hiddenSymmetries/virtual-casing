@@ -27,8 +27,7 @@ template <class Real> void test(long Nt, long Np, int digits, biest::SurfType su
   virtual_casing.SetAccuracy(digits);
 
   // Compute Bext field
-  std::vector<Real> Bext_;
-  virtual_casing.ComputeBext(Bext_, B);
+  auto Bext_ = virtual_casing.ComputeBext(B);
 
   // print error
   auto Berr = Bext;

@@ -45,7 +45,7 @@ template <class Real> class VirtualCasing {
      * where Nt and Np are the number of discretizations in toroidal and
      * poloidal directions.
      */
-    void ComputeBext(std::vector<Real>& Bext, const std::vector<Real>& B) const;
+    std::vector<Real> ComputeBext(const std::vector<Real>& B) const;
 
   private:
 

@@ -7,19 +7,6 @@
 namespace py = pybind11;
 
 
-template<class Real>
-class PyVirtualCasing : public VirtualCasing<Real> {
-public:
-    using VirtualCasing<Real>::VirtualCasing;
-
-    std::vector<Real> compute_external_B(const std::vector<Real>& B){
-        std::vector<Real> B_ext;
-        VirtualCasing<Real>::ComputeBext(B_ext, B);
-        return B_ext;
-    }
-};
-
-
 PYBIND11_MODULE(virtual_casing, m) {
 
     py::class_<sctl::Vector<double>>(m, "SCTLDoubleVector")
@@ -44,11 +31,11 @@ PYBIND11_MODULE(virtual_casing, m) {
         .value("W7X_", biest::SurfType::W7X_);
 
 
-    py::class_<PyVirtualCasing<double>, VirtualCasing<double>>(m, "VirtualCasing")
+    py::class_<VirtualCasing<double>>(m, "VirtualCasing")
         .def(py::init<>())
         .def("set_surface", &VirtualCasing<double>::SetSurface)
         .def("set_accuracy", &VirtualCasing<double>::SetAccuracy)
-        .def("compute_external_B", &PyVirtualCasing<double>::compute_external_B);
+        .def("compute_external_B", &VirtualCasing<double>::ComputeBext);
 
 }
 
