@@ -77,10 +77,7 @@ endif()
 
 find_package(OpenMP REQUIRED)
 
-add_subdirectory(thirdparty/pybind11)
-# add_subdirectory(thirdparty/fmt)
-# set(XTENSOR_USE_OPENMP 0)
-# set(XTENSOR_USE_TBB 0)
+add_subdirectory(extern/pybind11)
 
 
 pybind11_add_module(${PROJECT_NAME} src/python.cpp)
@@ -94,11 +91,6 @@ set_target_properties(vc_testing
     PROPERTIES
     CXX_STANDARD 11
     CXX_STANDARD_REQUIRED ON)
-
-#target_include_directories(${PROJECT_NAME} PRIVATE 
-    # "thirdparty/xtensor/include" "thirdparty/xtensor-python/include" "thirdparty/xsimd/include" "thirdparty/xtl/include" "thirdparty/eigen"
-#    ${Python_NumPy_INCLUDE_DIRS} "include" "BIEST/include")
-# target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
 
 target_include_directories(vc_testing PRIVATE  "include" "BIEST/include")
 target_include_directories(${PROJECT_NAME} PRIVATE  "include" "BIEST/include")
