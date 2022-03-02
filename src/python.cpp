@@ -21,9 +21,6 @@ public:
 
 
 PYBIND11_MODULE(virtual_casing, m) {
-    // SCTL Vector class has no duck typing with std::vector. The below two lines won't work
-    // py::bind_vector<sctl::Vector<long>>(m, "SCTLVectorInt");
-    // py::bind_vector<sctl::Vector<double>>(m, "SCTLVectorDouble");
 
     py::class_<sctl::Vector<double>>(m, "SCTLDoubleVector")
          .def(py::init<>())
@@ -54,3 +51,4 @@ PYBIND11_MODULE(virtual_casing, m) {
         .def("compute_external_B", &PyVirtualCasing<double>::compute_external_B);
 
 }
+
