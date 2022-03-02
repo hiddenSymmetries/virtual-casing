@@ -30,12 +30,16 @@ PYBIND11_MODULE(virtual_casing, m) {
         .value("Stell", biest::SurfType::Stell)                                 // 250 x 50
         .value("W7X_", biest::SurfType::W7X_);
 
-
     py::class_<VirtualCasing<double>>(m, "VirtualCasing")
         .def(py::init<>())
         .def("set_surface", &VirtualCasing<double>::SetSurface)
         .def("set_accuracy", &VirtualCasing<double>::SetAccuracy)
         .def("compute_external_B", &VirtualCasing<double>::ComputeBext);
+
+    py::class_<VirtualCasingTestData<double>>(m, "VirtualCasingTestData")
+        .def(py::init<>())
+        .def_static("surface_coordinates", &VirtualCasingTestData<double>::SurfaceCoordinates)
+        .def_static("magnetic_field_data", &VirtualCasingTestData<double>::BFieldData);
 
 }
 
