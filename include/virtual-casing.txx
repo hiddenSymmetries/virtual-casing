@@ -338,14 +338,17 @@ template <class Real> void VirtualCasing<Real>::CrossProd(sctl::Vector<Real>& Ac
   }
 };
 
-template <class Real> void VirtualCasingTestData<Real>::SurfaceCoordinates(std::vector<Real>& X, int Nt, int Np, biest::SurfType surf_type) {
+template <class Real>
+std::vector<Real> VirtualCasingTestData<Real>::SurfaceCoordinates(int Nt, int Np, biest::SurfType surf_type) {
   biest::Surface<Real> S(Nt,Np, surf_type);
   const auto& X_ = S.Coord();
-  X.resize(X_.Dim());
+  std::vector<Real> X(X_.Dim());
   X.assign(X_.begin(), X_.end());
+  return X;
 }
 
-template <class Real> void VirtualCasingTestData<Real>::BFieldData(std::vector<Real>& Bext, std::vector<Real>& Bint, int Nt, int Np, const std::vector<Real>& X) {
+template <class Real>
+std::tuple<std::vector<Real>, std::vector<Real>> VirtualCasingTestData<Real>::BFieldData(int Nt, int Np, const std::vector<Real>& X) {
   constexpr sctl::Integer COORD_DIM = 3;
   auto WriteVTK_ = [](std::string fname, const sctl::Vector<sctl::Vector<Real>>& coords, const sctl::Vector<sctl::Vector<Real>>& values) {
     biest::VTKData data;
@@ -507,8 +510,8 @@ template <class Real> void VirtualCasingTestData<Real>::BFieldData(std::vector<R
 
   const auto Bint_ = eval_BiotSavart(Svec[0].Coord(), source0, density0);
   const auto Bext_ = eval_BiotSavart(Svec[0].Coord(), source1, density1);
-  Bint.resize(Bint_.Dim());
-  Bext.resize(Bext_.Dim());
+  std::vector<Real> Bext(Bext_.Dim());
+  std::vector<Real> Bint(Bint_.Dim());
   Bint.assign(Bint_.begin(), Bint_.end());
   Bext.assign(Bext_.begin(), Bext_.end());
 
@@ -519,4 +522,6 @@ template <class Real> void VirtualCasingTestData<Real>::BFieldData(std::vector<R
 
   SCTL_UNUSED(WriteVTK_);
   SCTL_UNUSED(DotProd);
+
+  return std::make_tuple(std::move(Bext), std::move(Bint));
 }
