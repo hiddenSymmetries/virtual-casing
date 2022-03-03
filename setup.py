@@ -122,7 +122,7 @@ class CMakeBuild(build_ext):
 setup(
     name="virtual_casing",
     version="0.0.1",
-    author="Dhairya Malhotra, Bharat Medasani",
+    author="Dhairya Malhotra, Manas Rachh, Bharat Medasani",
     author_email="mbkumar@gmail.com",
     description="Python Wrapper for Virtual Casing",
     long_description="",
