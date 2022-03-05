@@ -1,7 +1,7 @@
 [submodule "BIEST"]
 	path = BIEST
-	url = https://github.com/mbkumar/BIEST.git
-    branch
+	url = ../../mbkumar/BIEST
+    branch = master
 [submodule "extern/pybind11"]
 	path = extern/pybind11
 	url = ../../pybind/pybind11
