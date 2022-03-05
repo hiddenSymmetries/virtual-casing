@@ -1,0 +1,89 @@
+# This file is based on examples in
+# https://docs.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions
+
+# Note that all the "sudo" commands here appear to cause a warning message
+# "sudo: setrlimit(RLIMIT_CORE): operation not permitted"
+# This appears to be a known harmless annoyance:
+# https://gitlab.alpinelinux.org/alpine/aports/-/issues/11122
+
+name: Test
+
+on: 
+  push: 
+    branches: [master]
+    tags: [v*]
+  pull_request:
+    branches: [master]
+  workflow_dispatch: 
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      OMPI_ALLOW_RUN_AS_ROOT: 1
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9] # To sync with coveragerc use 3 level
+
+    steps:
+    # First print out lots of information. We do this in separate 
+    # "name" blocks because otherwise the output gets mixed together
+    # in the github actions log.
+    
+    - name: Print user and group id
+      run: set -ex && id
+
+    - name: PWD
+      run: set -ex && pwd
+
+    - name: ls -l
+      run: set -ex && ls -l
+
+    - name: apt-get stuff needed for libstell and vmec
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential liblapack-dev git m4 libfftw3-dev libopenblas-dev
+
+    - uses: actions/checkout@v2
+      with:
+          submodules: recursive
+
+    # - name: Fetch all history for all tags if using scm_version
+    #   run: git fetch --all --tags --prune --unshallow
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: which python3 after python setup
+      run: which python3
+
+    - name: which pip after python setup
+      run: |
+        python -m pip install --upgrade pip
+        pip --version
+
+    - name: env after adding python
+      run: env
+
+    - name: Install python dependencies
+      run: |
+        pip install wheel numpy cmake ninja
+
+    - name: Add to LD_LIBRARY_PATH so scalapack etc can be found
+      run: echo "LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu" >> $GITHUB_ENV
+
+    - name: env after adding to LD_LIBRARY_PATH
+      run: env
+
+    - name: Install virtual-casing package
+      run: pip install -v .
+
+    - name: Run examples as part of integrated tests
+      run: python3 test/test.py
+
