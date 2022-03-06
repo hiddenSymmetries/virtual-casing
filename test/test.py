@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import virtual_casing as vc
 import numpy as np
 
@@ -16,7 +18,7 @@ def test(Nt, Np, digits, surf_type):
     Berr = np.array(Bext) - np.array(Bext_)
     max_val = np.abs(B).max()
     max_err = np.abs(Berr).max()
-    print(f"Maximum relative error: {max_err/max_val}")
+    print(f"For digits = {digits}, maximum relative error = {max_err/max_val}")
 
 if __name__ == '__main__':
     for i in range(1, 12):
