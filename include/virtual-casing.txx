@@ -349,7 +349,7 @@ std::vector<Real> VirtualCasingTestData<Real>::SurfaceCoordinates(int Nt, int Np
 
 template <class Real>
 std::tuple<std::vector<Real>, std::vector<Real>> VirtualCasingTestData<Real>::BFieldData(int Nt, int Np, const std::vector<Real>& X) {
-  constexpr sctl::Integer COORD_DIM = 3;
+  constexpr static sctl::Integer COORD_DIM = 3;
   auto WriteVTK_ = [](std::string fname, const sctl::Vector<sctl::Vector<Real>>& coords, const sctl::Vector<sctl::Vector<Real>>& values) {
     biest::VTKData data;
     typedef biest::VTKData::VTKReal VTKReal;
