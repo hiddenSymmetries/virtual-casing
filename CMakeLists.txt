@@ -13,6 +13,11 @@ if (USE_PROFILER)
 endif ()
 set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
 
+if(DEFINED ENV{CONDA_PREFIX})
+    include_directories($ENV{CONDA_PREFIX}/include)
+    message(STATUS "Conda prefix is $ENV{CONDA_PREFIX}")
+endif()
+
 find_package (BLAS)
 if (BLAS_FOUND)
     add_definitions (-DSCTL_HAVE_BLAS)
@@ -31,7 +36,7 @@ find_package(FFTW COMPONENTS FLOAT_LIB DOUBLE_LIB LONGDOUBLE_LIB DOUBLE_OPENMP_L
 if(FFTW_DOUBLE_LIB_FOUND)
     message(STATUS "FFTW_INCLUDE_DIR is ${FFTW_INCLUDE_DIRS}")
     add_definitions (-DSCTL_HAVE_FFTW)
-    include_directories(${FFTW_INCLUDE_DIRS})
+    include_directories("${FFTW_INCLUDE_DIRS}")
 endif()
 if (FFTW_FLOAT_LIB_FOUND)
     add_definitions (-DSCTL_HAVE_FFTWF)
@@ -96,7 +101,9 @@ if(APPLE)
       set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
       set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
     endif()
-    include_directories("/opt/local/include/libomp" "/opt/local/include")
+    # Locations for Macport libraries especially OpenMP
+    # include_directories("/opt/local/include/libomp" "/opt/local/include")
+    # link_directories("/opt/local/lib/libomp" "/opt/local/lib")
 endif()
 include_directories("/usr/local/include")
 find_package(OpenMP REQUIRED)
@@ -106,30 +113,25 @@ add_subdirectory(extern/pybind11)
 
 pybind11_add_module(${PROJECT_NAME} src/python.cpp)
 
-set_target_properties(${PROJECT_NAME}
-    PROPERTIES
-    CXX_STANDARD 11
-    CXX_STANDARD_REQUIRED ON)
+#set_target_properties(${PROJECT_NAME}
+#    PROPERTIES
+#    CXX_STANDARD 11
+#    CXX_STANDARD_REQUIRED ON)
 add_executable(vc_testing EXCLUDE_FROM_ALL test/virtual-casing.cpp)
-set_target_properties(vc_testing
-    PROPERTIES
-    CXX_STANDARD 11
-    CXX_STANDARD_REQUIRED ON)
-
-target_include_directories(vc_testing PRIVATE  "include" "BIEST/include")
-target_include_directories(${PROJECT_NAME} PRIVATE  "include" "BIEST/include")
-target_include_directories(${PROJECT_NAME} PRIVATE  ${Python_NumPy_INCLUDE_DIRS})
+#set_target_properties(vc_testing
+#    PROPERTIES
+#    CXX_STANDARD 11
+#    CXX_STANDARD_REQUIRED ON)
 
 target_link_libraries(vc_testing PRIVATE OpenMP::OpenMP_CXX)
 target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 
-#if(OpenMP_FOUND)
-    #target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
-target_link_libraries(vc_testing PUBLIC OpenMP::OpenMP_CXX)
-#endif()
-if(FFTW_DOUBLE_LIBFOUND)
-    target_link_libraries (vc_testing PUBLIC FFTW::Double)
-    target_link_libraries (${PROJECT_NAME} PUBLIC FFTW::Double)
+if(FFTW_DOUBLE_LIB_FOUND)
+    message(STATUS "FFT DOUBLE FOUND")
+    target_link_libraries(vc_testing PUBLIC FFTW::Double)
+    target_link_libraries(${PROJECT_NAME} PUBLIC FFTW::Double)
+    target_include_directories(vc_testing PRIVATE ${FFTW_INCLUDE_DIRS})
+    target_include_directories(${PROJECT_NAME} PRIVATE ${FFTW_INCLUDE_DIRS})
 endif()
 if (FFTW_FLOAT_LIB_FOUND)
     target_link_libraries (vc_testing PUBLIC FFTW::Float)
@@ -152,6 +154,13 @@ if (LAPACK_FOUND)
 	target_link_libraries (${PROJECT_NAME} PRIVATE ${LAPACK_LIBRARIES})
 endif ()
 
+target_include_directories(vc_testing PRIVATE  "include" "BIEST/include" "${FFTW_INCLUDE_DIRS}")
+message(STATUS "FFTW_INCLUDE_DIRS is ${FFTW_INCLUDE_DIRS}")
+target_include_directories(${PROJECT_NAME} PRIVATE  "include" "BIEST/include")
+target_include_directories(${PROJECT_NAME} PRIVATE  ${Python_NumPy_INCLUDE_DIRS})
+
+get_target_property(INC_DIRS vc_testing INCLUDE_DIRECTORIES)
+message(STATUS "vc_testing include directories are ${INC_DIRS}")
 
 #get_cmake_property(_variableNames VARIABLES)
 #list (SORT _variableNames)
