@@ -21,6 +21,7 @@ jobs:
         env:
           # Only build for python 3.{7,8,9}
           CIBW_BUILD : cp37-* cp38-* cp39-* cp310-*
+          CIBW_ENVIRONMENT: CI=True
           # Supports only x86_64 arch for linux
           CIBW_ARCHS_LINUX: x86_64
           CIBW_BEFORE_ALL_LINUX: yum install -y lapack-devel openblas-devel fftw-devel
