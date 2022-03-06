@@ -4,7 +4,7 @@ project(virtual_casing)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 OPTION (USE_PROFILER "Activate code profiling." OFF)
@@ -108,12 +108,12 @@ pybind11_add_module(${PROJECT_NAME} src/python.cpp)
 
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
-    CXX_STANDARD 14
+    CXX_STANDARD 11
     CXX_STANDARD_REQUIRED ON)
 add_executable(vc_testing EXCLUDE_FROM_ALL test/virtual-casing.cpp)
 set_target_properties(vc_testing
     PROPERTIES
-    CXX_STANDARD 14
+    CXX_STANDARD 11
     CXX_STANDARD_REQUIRED ON)
 
 target_include_directories(vc_testing PRIVATE  "include" "BIEST/include")
