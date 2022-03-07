@@ -70,9 +70,9 @@ jobs:
         run: |
           python -m pip wheel -w wheel --no-deps .
           python --version
+          delocate-wheel --require-archs x86_64 -w ./wheelhouse ./wheel/*.whl
           ls wheel
           ls wheelhouse
-          delocate-wheel --require-archs x86_64 -w ./wheelhouse ./wheel/*.whl
          
       - uses: actions/upload-artifact@v2
         with:
