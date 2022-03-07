@@ -91,22 +91,12 @@ add_subdirectory(extern/pybind11)
 
 
 pybind11_add_module(${PROJECT_NAME} src/python.cpp)
+add_executable(vc_testing EXCLUDE_FROM_ALL test/virtual-casing.cpp)
+
 if(OpenMP_CXX_FOUND)
+    target_link_libraries(vc_testing PRIVATE OpenMP::OpenMP_CXX)
     target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 endif()
-
-#set_target_properties(${PROJECT_NAME}
-#    PROPERTIES
-#    CXX_STANDARD 11
-#    CXX_STANDARD_REQUIRED ON)
-add_executable(vc_testing EXCLUDE_FROM_ALL test/virtual-casing.cpp)
-#set_target_properties(vc_testing
-#    PROPERTIES
-#    CXX_STANDARD 11
-#    CXX_STANDARD_REQUIRED ON)
-
-target_link_libraries(vc_testing PRIVATE OpenMP::OpenMP_CXX)
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 
 if(FFTW_DOUBLE_LIB_FOUND)
     message(STATUS "FFT DOUBLE FOUND")
