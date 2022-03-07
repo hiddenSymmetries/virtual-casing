@@ -84,27 +84,6 @@ else()
     set(CMAKE_CXX_FLAGS "-O3 -march=native -mfma -ffp-contract=fast")
 endif()
 
-if(APPLE)
-    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-        set(OpenMP_C "${CMAKE_C_COMPILER}")
-        set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp=libomp -Wno-unused-command-line-argument")
-        set(OpenMP_C_LIB_NAMES "libomp" "libgomp" "libiomp5")
-        set(OpenMP_libomp_LIBRARY ${OpenMP_C_LIB_NAMES})
-        set(OpenMP_libgomp_LIBRARY ${OpenMP_C_LIB_NAMES})
-        set(OpenMP_libiomp5_LIBRARY ${OpenMP_C_LIB_NAMES})
-    endif()
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-      set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
-      set(OpenMP_CXX_FLAGS "-Xpreprocesor -fopenmp=libomp -Wno-unused-command-line-argument")
-      set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
-      set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
-      set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
-      set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
-    endif()
-    # Locations for Macport libraries especially OpenMP
-    # include_directories("/opt/local/include/libomp" "/opt/local/include")
-    # link_directories("/opt/local/lib/libomp" "/opt/local/lib")
-endif()
 include_directories("/usr/local/include")
 find_package(OpenMP REQUIRED)
 
@@ -112,6 +91,9 @@ add_subdirectory(extern/pybind11)
 
 
 pybind11_add_module(${PROJECT_NAME} src/python.cpp)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+endif()
 
 #set_target_properties(${PROJECT_NAME}
 #    PROPERTIES
