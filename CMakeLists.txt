@@ -49,7 +49,8 @@ if (FFTW_FLOAT_OPENMP_FOUND)
 endif()
 
 set(Python_FIND_STRATEGY LOCATION)
-find_package(Python 3 COMPONENTS Interpreter Development.Module NumPy)
+# find_package(Python 3 COMPONENTS Interpreter Development.Module NumPy)
+find_package(Python 3 COMPONENTS Interpreter Development.Module)
 
 message(STATUS "Python executable is ${Python_EXECUTABLE}")
 message(STATUS "Python Development Module found value is ${Python_Development.Module_FOUND}")
@@ -129,7 +130,7 @@ endif ()
 target_include_directories(vc_testing PRIVATE  "include" "BIEST/include" "${FFTW_INCLUDE_DIRS}")
 message(STATUS "FFTW_INCLUDE_DIRS is ${FFTW_INCLUDE_DIRS}")
 target_include_directories(${PROJECT_NAME} PRIVATE  "include" "BIEST/include")
-target_include_directories(${PROJECT_NAME} PRIVATE  ${Python_NumPy_INCLUDE_DIRS})
+# target_include_directories(${PROJECT_NAME} PRIVATE  ${Python_NumPy_INCLUDE_DIRS})
 
 get_target_property(INC_DIRS vc_testing INCLUDE_DIRECTORIES)
 message(STATUS "vc_testing include directories are ${INC_DIRS}")
