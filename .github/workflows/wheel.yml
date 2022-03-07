@@ -44,8 +44,11 @@ jobs:
       matrix:
         python: [3.7, 3.8, 3.9, "3.10"]
         os: [macos-10.15, macos-11]
+
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
       # - name: Fetch all history for all tags
       #   run: git fetch --prune --unshallow
@@ -66,6 +69,9 @@ jobs:
       - name: Build and repair wheels
         run: |
           python -m pip wheel -w wheel --no-deps .
+          python --version
+          ls wheel
+          ls wheelhouse
           delocate-wheel --require-archs x86_64 -w ./wheelhouse ./wheel/*.whl
          
       - uses: actions/upload-artifact@v2
