@@ -14,7 +14,7 @@ def test(Nt, Np, digits, surf_type):
     vcasing.set_surface(Nt, Np, X)
     vcasing.set_accuracy(digits)
 
-    Bext_ = vcasing.compute_external_B(list(B))
+    Bext_ = vcasing.compute_external_B(B)
     Berr = np.array(Bext) - np.array(Bext_)
     max_val = np.abs(B).max()
     max_err = np.abs(Berr).max()
