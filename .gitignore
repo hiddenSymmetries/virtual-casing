@@ -6,3 +6,8 @@ obj
 *.o
 fort.*
 int2*
+.idea/*
+build/*
+dist/*
+venv/*
+*.egg-info/*

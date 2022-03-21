@@ -262,7 +262,8 @@ template <class Real> void VirtualCasing<Real>::SetAccuracy(sctl::Integer digits
   digits_ = digits;
 }
 
-template <class Real> void VirtualCasing<Real>::ComputeBext(std::vector<Real>& Bext, const std::vector<Real>& B_) const {
+template <class Real>
+std::vector<Real> VirtualCasing<Real>::ComputeBext(const std::vector<Real>& B_) const {
   if (dosetup) {
     //BiotSavartFxU.SetupSingular(Svec, biest::BiotSavart3D<Real>::FxU(), digits_);
     LaplaceFxdU.SetupSingular(Svec, biest::Laplace3D<Real>::FxdU(), digits_);
@@ -277,7 +278,7 @@ template <class Real> void VirtualCasing<Real>::ComputeBext(std::vector<Real>& B
   DotProd(BdotN, B, normal);
   CrossProd(J, normal, B);
   LaplaceFxdU.Eval(Bext_, BdotN);
-  { //BiotSavartFxU.Eval(Bext, J);
+  //{ //BiotSavartFxU.Eval(Bext, J);
     const sctl::Long N = J.Dim() / COORD_DIM;
     sctl::Vector<Real> gradG_J(N * COORD_DIM * COORD_DIM); gradG_J = 0;
     sctl::Vector<Real> gradG_J0(N*COORD_DIM, gradG_J.begin() + N*COORD_DIM*0, false);
@@ -287,7 +288,8 @@ template <class Real> void VirtualCasing<Real>::ComputeBext(std::vector<Real>& B
     LaplaceFxdU.Eval(gradG_J1, sctl::Vector<Real>(N, J.begin() + N*1, false));
     LaplaceFxdU.Eval(gradG_J2, sctl::Vector<Real>(N, J.begin() + N*2, false));
 
-    if ((sctl::Long)Bext.size() != N * COORD_DIM) Bext.resize(N * COORD_DIM);
+    //if ((sctl::Long)Bext.size() != N * COORD_DIM) Bext.resize(N * COORD_DIM);
+    std::vector<Real> Bext(N * COORD_DIM);
     for (sctl::Long i = 0; i < N; i++) {
       for (sctl::Integer k = 0; k < COORD_DIM; k++) {
         const sctl::Integer k1 = (k+1)%COORD_DIM;
@@ -295,10 +297,11 @@ template <class Real> void VirtualCasing<Real>::ComputeBext(std::vector<Real>& B
         Bext[k*N+i] = gradG_J[(k1*COORD_DIM+k2)*N+i] - gradG_J[(k2*COORD_DIM+k1)*N+i];
       }
     }
-  }
+  //}
   for (sctl::Long i = 0; i < (sctl::Long)Bext.size(); i++) {
     Bext[i] += Bext_[i] + 0.5 * B[i];
   }
+  return Bext;
 }
 
 template <class Real> void VirtualCasing<Real>::DotProd(sctl::Vector<Real>& AdotB, const sctl::Vector<Real>& A, const sctl::Vector<Real>& B) {
@@ -335,15 +338,18 @@ template <class Real> void VirtualCasing<Real>::CrossProd(sctl::Vector<Real>& Ac
   }
 };
 
-template <class Real> void VirtualCasingTestData<Real>::SurfaceCoordinates(std::vector<Real>& X, int Nt, int Np, biest::SurfType surf_type) {
+template <class Real>
+std::vector<Real> VirtualCasingTestData<Real>::SurfaceCoordinates(int Nt, int Np, biest::SurfType surf_type) {
   biest::Surface<Real> S(Nt,Np, surf_type);
   const auto& X_ = S.Coord();
-  X.resize(X_.Dim());
+  std::vector<Real> X(X_.Dim());
   X.assign(X_.begin(), X_.end());
+  return X;
 }
 
-template <class Real> void VirtualCasingTestData<Real>::BFieldData(std::vector<Real>& Bext, std::vector<Real>& Bint, int Nt, int Np, const std::vector<Real>& X) {
-  constexpr sctl::Integer COORD_DIM = 3;
+template <class Real>
+std::tuple<std::vector<Real>, std::vector<Real>> VirtualCasingTestData<Real>::BFieldData(int Nt, int Np, const std::vector<Real>& X) {
+  constexpr static sctl::Integer COORD_DIM = 3;
   auto WriteVTK_ = [](std::string fname, const sctl::Vector<sctl::Vector<Real>>& coords, const sctl::Vector<sctl::Vector<Real>>& values) {
     biest::VTKData data;
     typedef biest::VTKData::VTKReal VTKReal;
@@ -504,8 +510,8 @@ template <class Real> void VirtualCasingTestData<Real>::BFieldData(std::vector<R
 
   const auto Bint_ = eval_BiotSavart(Svec[0].Coord(), source0, density0);
   const auto Bext_ = eval_BiotSavart(Svec[0].Coord(), source1, density1);
-  Bint.resize(Bint_.Dim());
-  Bext.resize(Bext_.Dim());
+  std::vector<Real> Bext(Bext_.Dim());
+  std::vector<Real> Bint(Bint_.Dim());
   Bint.assign(Bint_.begin(), Bint_.end());
   Bext.assign(Bext_.begin(), Bext_.end());
 
@@ -516,4 +522,6 @@ template <class Real> void VirtualCasingTestData<Real>::BFieldData(std::vector<R
 
   SCTL_UNUSED(WriteVTK_);
   SCTL_UNUSED(DotProd);
+
+  return std::make_tuple(std::move(Bext), std::move(Bint));
 }

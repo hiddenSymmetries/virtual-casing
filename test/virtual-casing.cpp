@@ -2,8 +2,7 @@
 
 template <class Real> void test(long Nt, long Np, int digits, biest::SurfType surf_type) {
   // Construct the surface
-  std::vector<Real> X(3*Nt*Np);
-  VirtualCasingTestData<Real>::SurfaceCoordinates(X, Nt, Np, surf_type);
+  auto X = VirtualCasingTestData<Real>::SurfaceCoordinates(Nt, Np, surf_type);
   //for (long t = 0; t < Nt; t++) { // toroidal direction
   //  for (long p = 0; p < Np; p++) { // poloidal direction
   //    Real x = (2 + 0.5*cos(2*M_PI*p/Np)) * cos(2*M_PI*t/Nt);
@@ -16,9 +15,9 @@ template <class Real> void test(long Nt, long Np, int digits, biest::SurfType su
   //}
 
   // Generate B fields for testing virtual-casing principle
-  std::vector<Real> Bext, Bint, B;
-  VirtualCasingTestData<Real>::BFieldData(Bext, Bint, Nt, Np, X);
-  B = Bint;
+  std::vector<Real> Bext, Bint; // , B;
+  std::tie(Bext, Bint) = VirtualCasingTestData<Real>::BFieldData(Nt, Np, X);
+  auto B (Bint);
   for (long i = 0; i < (long)B.size(); i++) B[i] += Bext[i];
 
   // Setup
@@ -27,8 +26,7 @@ template <class Real> void test(long Nt, long Np, int digits, biest::SurfType su
   virtual_casing.SetAccuracy(digits);
 
   // Compute Bext field
-  std::vector<Real> Bext_;
-  virtual_casing.ComputeBext(Bext_, B);
+  auto Bext_ = virtual_casing.ComputeBext(B);
 
   // print error
   auto Berr = Bext;
