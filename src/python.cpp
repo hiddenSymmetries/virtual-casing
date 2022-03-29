@@ -32,8 +32,7 @@ PYBIND11_MODULE(virtual_casing, m) {
 
     py::class_<VirtualCasing<double>>(m, "VirtualCasing")
         .def(py::init<>())
-        .def("set_surface", &VirtualCasing<double>::SetSurface)
-        .def("set_accuracy", &VirtualCasing<double>::SetAccuracy)
+        .def("setup", &VirtualCasing<double>::Setup)
         .def("compute_external_B", &VirtualCasing<double>::ComputeBext);
 
     py::class_<VirtualCasingTestData<double>>(m, "VirtualCasingTestData")

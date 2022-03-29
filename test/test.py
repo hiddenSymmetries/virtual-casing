@@ -3,16 +3,15 @@
 import virtual_casing as vc
 import numpy as np
 
-def test(Nt, Np, digits, surf_type):
-    X = vc.VirtualCasingTestData.surface_coordinates(Nt, Np, surf_type)
+def test(digits, NFP, Nt, Np, surf_type, src_Nt, src_Np, trg_Nt, trg_Np):
+    X = vc.VirtualCasingTestData.surface_coordinates(NFP, Nt, Np, surf_type)
 
-    Bext, Bint = vc.VirtualCasingTestData.magnetic_field_data(Nt, Np, X)
-
-    B = np.array(Bext) + np.array(Bint)
+    Bext, Bint = vc.VirtualCasingTestData.magnetic_field_data(NFP, Nt, Np, X, trg_Nt, trg_Np)
+    Bext_, Bint_ = vc.VirtualCasingTestData.magnetic_field_data(NFP, Nt, Np, X, src_Nt, src_Np)
+    B = np.array(Bext_) + np.array(Bint_)
 
     vcasing = vc.VirtualCasing()
-    vcasing.set_surface(Nt, Np, X)
-    vcasing.set_accuracy(digits)
+    vcasing.setup(digits, NFP, Nt, Np, X, src_Nt, src_Np, trg_Nt, trg_Np)
 
     Bext_ = vcasing.compute_external_B(B)
     Berr = np.array(Bext) - np.array(Bext_)
@@ -21,5 +20,5 @@ def test(Nt, Np, digits, surf_type):
     print(f"For digits = {digits}, maximum relative error = {max_err/max_val}")
 
 if __name__ == '__main__':
-    for i in range(1, 12):
-        test(40*i, 10*i, i, vc.SurfType.AxisymNarrow)
+    for i in range(3, 13, 3):
+        test(i, 5, 20, 20, vc.SurfType.W7X_, 12*i, 32*i, 25, 25)
