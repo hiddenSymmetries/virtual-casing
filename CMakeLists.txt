@@ -89,12 +89,9 @@ include_directories("/usr/local/include")
 find_package(OpenMP REQUIRED)
 
 add_subdirectory(extern/pybind11)
-#add_library(pybind11::pybind11 IMPORTED)
-#target_include_directories(pybind11::pybind11 INTERFACE ${PATH_TO_PYBIND11})
-Python_add_library(${PROJECT_NAME} MODULE src/python.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE pybind11::pybind11)
-
-# pybind11_add_module(${PROJECT_NAME} src/python.cpp)
+#Python_add_library(${PROJECT_NAME} MODULE src/python.cpp)
+#target_link_libraries(${PROJECT_NAME} PRIVATE pybind11::pybind11)
+pybind11_add_module(${PROJECT_NAME} src/python.cpp)
 add_executable(vc_testing EXCLUDE_FROM_ALL test/virtual-casing.cpp)
 
 if(OpenMP_CXX_FOUND)
