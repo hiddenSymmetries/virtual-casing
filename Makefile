@@ -37,7 +37,8 @@ INCDIR = ./include
 
 TARGET_LIB = $(LIBDIR)/libvirtualcasing.a
 TARGET_BIN = $(BINDIR)/virtual-casing \
-						 $(BINDIR)/virtual-casing-c
+						 $(BINDIR)/virtual-casing-c \
+						 $(BINDIR)/axisymm
 
 BIEST_INCDIR = ./BIEST/include
 
