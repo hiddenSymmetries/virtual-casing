@@ -3,7 +3,7 @@ CXX = g++
 CXXFLAGS = -std=c++11 -fopenmp -march=native -Wall # need C++11 and OpenMP
 
 #Optional flags
-#CXXFLAGS += -O0 # debug build
+#CXXFLAGS += -O0 -fsanitize=address # debug build
 CXXFLAGS += -O3 -DNDEBUG # release build
 
 ifeq ($(shell uname -s),Darwin)

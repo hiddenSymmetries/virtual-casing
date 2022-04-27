@@ -3,15 +3,15 @@
 import virtual_casing as vc
 import numpy as np
 
-def test(digits, NFP, Nt, Np, surf_type, src_Nt, src_Np, trg_Nt, trg_Np):
-    X = vc.VirtualCasingTestData.surface_coordinates(NFP, Nt, Np, surf_type)
+def test(digits, NFP, half_period, Nt, Np, surf_type, src_Nt, src_Np, trg_Nt, trg_Np):
+    X = vc.VirtualCasingTestData.surface_coordinates(NFP, half_period, Nt, Np, surf_type)
 
-    Bext, Bint = vc.VirtualCasingTestData.magnetic_field_data(NFP, Nt, Np, X, trg_Nt, trg_Np)
-    Bext_, Bint_ = vc.VirtualCasingTestData.magnetic_field_data(NFP, Nt, Np, X, src_Nt, src_Np)
+    Bext, Bint = vc.VirtualCasingTestData.magnetic_field_data(NFP, half_period, Nt, Np, X, trg_Nt, trg_Np)
+    Bext_, Bint_ = vc.VirtualCasingTestData.magnetic_field_data(NFP, half_period, Nt, Np, X, src_Nt, src_Np)
     B = np.array(Bext_) + np.array(Bint_)
 
     vcasing = vc.VirtualCasing()
-    vcasing.setup(digits, NFP, Nt, Np, X, src_Nt, src_Np, trg_Nt, trg_Np)
+    vcasing.setup(digits, NFP, half_period, Nt, Np, X, src_Nt, src_Np, trg_Nt, trg_Np)
 
     Bext_ = vcasing.compute_external_B(B)
     Berr = np.array(Bext) - np.array(Bext_)
@@ -21,4 +21,4 @@ def test(digits, NFP, Nt, Np, surf_type, src_Nt, src_Np, trg_Nt, trg_Np):
 
 if __name__ == '__main__':
     for i in range(3, 13, 3):
-        test(i, 5, 20, 20, vc.SurfType.W7X_, 12*i, 32*i, 25, 25)
+        test(i, 5, True, 10, 20, vc.SurfType.W7X_, 6*i, 32*i, 20, 40)
