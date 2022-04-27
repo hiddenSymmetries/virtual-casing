@@ -56,6 +56,22 @@ template <class Real> class VirtualCasing {
      */
     std::vector<Real> ComputeBext(const std::vector<Real>& B) const;
 
+    /**
+     * Returns the surface normal vectors.
+     *
+     * @param[in] NFP number of toroidal field periods. The result will be on one field period.
+     *
+     * @param[in] half_period whether the result should be on half field period.
+     *
+     * @param[in] Nt surface discretization order in toroidal direction (in one field period).
+     *
+     * @param[in] Np surface discretization order in poloidal direction.
+     *
+     * @return the surface normal vectors in the order {nx11, nx12, ..., nx1Np,
+     * nx21, nx22, ... , nxNtNp, ny11, ... , nz11, ...}.
+     */
+    std::vector<Real> GetNormal(const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np) const;
+
   private:
 
     static void DotProd(sctl::Vector<Real>& AdotB, const sctl::Vector<Real>& A, const sctl::Vector<Real>& B);

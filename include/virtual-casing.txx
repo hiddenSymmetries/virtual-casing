@@ -109,10 +109,10 @@ template <class Real> void WriteVTK(const std::string& fname, const sctl::Intege
   sctl::Vector<Real> X_, F_;
   sctl::Vector<biest::Surface<Real>> Svec(1);
   Svec[0] = biest::Surface<Real>(NFP*(half_period?2:1)*src_Nt, src_Np, biest::SurfType::None);
-  CompleteVecField(X_, true, half_period, NFP, surf_Nt, surf_Np, X, (half_period?-sctl::const_pi<Real>()/(NFP*surf_Nt*2):0));
+  CompleteVecField(X_, true, half_period, NFP, surf_Nt, surf_Np, X, (half_period?sctl::const_pi<Real>()/(NFP*src_Nt*2):0)-(half_period?sctl::const_pi<Real>()/(NFP*surf_Nt*2):0));
   Resample(Svec[0].Coord(), NFP*(half_period?2:1)*src_Nt, src_Np, X_, NFP*(half_period?2:1)*surf_Nt, surf_Np);
 
-  CompleteVecField(F_, false, half_period, NFP, src_Nt, src_Np, F, (half_period?-sctl::const_pi<Real>()/(NFP*src_Nt*2):0));
+  CompleteVecField(F_, false, half_period, NFP, src_Nt, src_Np, F);
   biest::WriteVTK(fname.c_str(), Svec, F_);
 }
 
@@ -439,6 +439,32 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBext(const s
     }
   }
   return Bext;
+}
+
+template <class Real> std::vector<Real> VirtualCasing<Real>::GetNormal(const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np) const {
+  SCTL_ASSERT(Svec[0].NTor() && Svec[0].NPol());
+  const sctl::Long Nt_ = NFP*(half_period?2:1)*Nt;
+  const sctl::Long skip_tor = (sctl::Long)std::ceil(Svec[0].NTor()/Nt_);
+  const sctl::Long skip_pol = (sctl::Long)std::ceil(Svec[0].NPol()/Np);
+  const sctl::Long Nt0 = skip_tor*Nt_;
+  const sctl::Long Np0 = skip_pol*Np;
+
+  sctl::Vector<Real> X1, X2, dX, normal;
+  RotateToroidal(X1, Svec[0].Coord(), Svec[0].NTor(), Svec[0].NPol(), (half_period?sctl::const_pi<Real>()/(NFP*Nt*2):0)-(half_period_?sctl::const_pi<Real>()/(NFP_*trg_Nt_*2):0));
+  Resample(X2, Nt0, Np0, X1, Svec[0].NTor(), Svec[0].NPol());
+  biest::SurfaceOp<Real> SurfOp(comm_, Nt0, Np0);
+  SurfOp.Grad2D(dX, X2);
+  SurfOp.SurfNormalAreaElem(&normal, nullptr, dX, &X2);
+
+  std::vector<Real> Xn(COORD_DIM*Nt*Np);
+  for (sctl::Integer k = 0; k < COORD_DIM; k++) {
+    for (sctl::Long t = 0; t < Nt; t++) {
+      for (sctl::Long p = 0; p < Np; p++) {
+        Xn[(k*Nt+t)*Np+p] = normal[(k*Nt0+t*skip_tor)*Np0+p*skip_pol];
+      }
+    }
+  }
+  return Xn;
 }
 
 template <class Real> void VirtualCasing<Real>::DotProd(sctl::Vector<Real>& AdotB, const sctl::Vector<Real>& A, const sctl::Vector<Real>& B) {
