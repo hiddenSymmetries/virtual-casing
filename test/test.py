@@ -21,4 +21,4 @@ def test(digits, NFP, half_period, Nt, Np, surf_type, src_Nt, src_Np, trg_Nt, tr
 
 if __name__ == '__main__':
     for i in range(3, 13, 3):
-        test(i, 5, true, 10, 20, vc.SurfType.W7X_, 6*i, 32*i, 20, 40)
+        test(i, 5, True, 10, 20, vc.SurfType.W7X_, 6*i, 32*i, 20, 40)
