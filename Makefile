@@ -45,11 +45,11 @@ all : $(TARGET_BIN) $(TARGET_LIB)
 
 $(BINDIR)/%: ./test/%.cpp
 	-@$(MKDIRS) $(dir $@)
-	$(CXX) $(CXXFLAGS) -I$(INCDIR) -I$(BIEST_INCDIR) $^ -o $@
+	$(CXX) -I$(INCDIR) -I$(BIEST_INCDIR) $^ -o $@ $(CXXFLAGS)
 
 $(BINDIR)/%: ./test/%.c $(TARGET_LIB)
 	-@$(MKDIRS) $(dir $@)
-	$(CC) $(CXXFLAGS) -I$(INCDIR) $^ $(TARGET_LIB) -lm -ldl -lstdc++ -o $@
+	$(CC) -I$(INCDIR) $^ $(TARGET_LIB) -lm -ldl -lstdc++ -o $@ $(CXXFLAGS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	-@$(MKDIRS) $(dir $@)
