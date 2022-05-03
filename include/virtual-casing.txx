@@ -466,8 +466,8 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBext(const s
 template <class Real> std::vector<Real> VirtualCasing<Real>::GetNormal(const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np) const {
   SCTL_ASSERT(Svec[0].NTor() && Svec[0].NPol());
   const sctl::Long Nt_ = NFP*(half_period?2:1)*Nt;
-  const sctl::Long skip_tor = (sctl::Long)std::ceil(Svec[0].NTor()/Nt_);
-  const sctl::Long skip_pol = (sctl::Long)std::ceil(Svec[0].NPol()/Np);
+  const sctl::Long skip_tor = (sctl::Long)std::ceil(Svec[0].NTor()/(Real)Nt_);
+  const sctl::Long skip_pol = (sctl::Long)std::ceil(Svec[0].NPol()/(Real)Np);
   const sctl::Long Nt0 = skip_tor*Nt_;
   const sctl::Long Np0 = skip_pol*Np;
 
