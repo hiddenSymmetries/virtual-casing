@@ -21,7 +21,7 @@ class VirtualCasingTests(unittest.TestCase):
         max_err = np.abs(B_err).max()
         max_rel_err = max_err / max_val
         print(f"For digits = {digits} and half_period = {half_period}, maximum relative error = {max_rel_err}")
-        self.assertLess(max_rel_err, expected_error)
+        self.assertLess(max_rel_err, expected_error / 5)
 
     def test_w7x(self):
         """
