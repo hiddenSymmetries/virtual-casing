@@ -37,6 +37,41 @@ template <class Real> class VirtualCasing {
      * @param[in] trg_Nt output Bext-field discretization order in toroidal direction (in one field period).
      *
      * @param[in] trg_Np output Bext-field discretization order in poloidal direction.
+     *
+     * The grids for the input and output data differ in an important
+     * way depending on whether or not stellarator symmetry is
+     * exploited, i.e. on half_period. For this discussion, consider
+     * the toroidal angle phi and poloidal angle theta to have period
+     * 1 (not 2*pi).
+     *
+     * If you do not exploit stellarator symmetry, then half_period
+     * is set to false.  In this case the grids in the toroidal angles
+     * begin at phi=0.  The grid spacing is 1 / (NFP * Nt), and there
+     * is no point at the symmetry plane phi = 1 / NFP.
+     *
+     * If you do wish to exploit stellarator symmetry, set half_period
+     * to true. In this case the toroidal grids are each shifted by
+     * half a grid point, so there is no grid point at phi = 0. The
+     * phi grid for the surface shape has points at 0.5 / (NFP * Nt),
+     * 1.5 / (NFP * Nt), ..., (Nt - 0.5) / (NFP * Nt). The phi grid
+     * for the output B_external has grid points at 0.5 / (NFP *
+     * trg_Nt), 1.5 / (NFP * trg_Nt), ..., (trg_Nt - 0.5) / (NFP *
+     * Nt), and similarly for the input B field with trg -> src.
+     *
+     * The rationale for these conventions is that in both the
+     * stellarator-symmetric and non-stellarator-symmetric cases,
+     * integration over the surface can be achieved with spectral
+     * accuracy on these grids using uniform weights.
+     *
+     * Regardless of half_period, the poloidal grid always ranges
+     * uniformly over [0, 1), with the first grid point at theta = 0,
+     * and no grid point at theta = 1.
+     *
+     * The resolution parameters for the surface shape (Nt, Np), input
+     * magnetic field (src_Nt, src_Np), and output external field
+     * (trg_Nt, trg_Np) do not need to be related to each other in any
+     * particular way. For example, there is no performance penalty if
+     * src_Nt and trg_Nt are relatively prime.
      */
     void Setup(const sctl::Integer digits, const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np, const std::vector<Real>& X, const sctl::Long src_Nt, const sctl::Long src_Np, const sctl::Long trg_Nt, const sctl::Long trg_Np);
 
