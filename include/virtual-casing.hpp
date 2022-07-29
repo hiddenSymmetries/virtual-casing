@@ -4,8 +4,6 @@
 #ifndef _BIEST_VIRTUAL_CASING_HPP_
 #define _BIEST_VIRTUAL_CASING_HPP_
 
-template <class Real, sctl::Integer COORD_DIM, sctl::Integer KDIM0, sctl::Integer KDIM1> class BIOpWrapper;
-
 template <class Real> class VirtualCasing {
   static constexpr sctl::Integer COORD_DIM = 3;
 
@@ -114,8 +112,8 @@ template <class Real> class VirtualCasing {
     static void CrossProd(sctl::Vector<Real>& AcrossB, const sctl::Vector<Real>& A, const sctl::Vector<Real>& B);
 
     sctl::Comm comm_;
-    //mutable BIOpWrapper<Real,COORD_DIM,3,3> BiotSavartFxU;
-    mutable BIOpWrapper<Real,COORD_DIM,1,3> LaplaceFxdU;
+    //mutable FieldPeriodBIOp<Real,COORD_DIM,3,3> BiotSavartFxU;
+    mutable biest::FieldPeriodBIOp<Real,COORD_DIM,1,3> LaplaceFxdU;
     sctl::Vector<biest::Surface<Real>> Svec;
     bool half_period_;
     sctl::Integer NFP_, digits_;
