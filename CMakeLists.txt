@@ -18,9 +18,6 @@ if(DEFINED ENV{CONDA_PREFIX})
     message(STATUS "Conda prefix is $ENV{CONDA_PREFIX}")
 endif()
 
-include_directories("/usr/local/include")
-find_package(OpenMP REQUIRED)
-
 find_package (BLAS)
 if (BLAS_FOUND)
     add_definitions (-DSCTL_HAVE_BLAS)
@@ -96,6 +93,9 @@ else()
     endif()
 endif()
 
+
+include_directories("/usr/local/include")
+find_package(OpenMP REQUIRED)
 
 add_subdirectory(extern/pybind11)
 #Python_add_library(${PROJECT_NAME} MODULE src/python.cpp)
