@@ -89,6 +89,8 @@ template <class Real> class VirtualCasing {
      */
     std::vector<Real> ComputeBext(const std::vector<Real>& B) const;
 
+    std::vector<Real> ComputeGradBext(const std::vector<Real>& B) const;
+
     /**
      * Returns the surface normal vectors.
      *
@@ -112,8 +114,10 @@ template <class Real> class VirtualCasing {
     static void CrossProd(sctl::Vector<Real>& AcrossB, const sctl::Vector<Real>& A, const sctl::Vector<Real>& B);
 
     sctl::Comm comm_;
-    //mutable FieldPeriodBIOp<Real,COORD_DIM,3,3> BiotSavartFxU;
+    mutable biest::FieldPeriodBIOp<Real,COORD_DIM,3,3> BiotSavartFxU;
     mutable biest::FieldPeriodBIOp<Real,COORD_DIM,1,3> LaplaceFxdU;
+    mutable biest::FieldPeriodBIOp<Real,COORD_DIM,3,9, 8> BiotSavartFxdU;
+    mutable biest::FieldPeriodBIOp<Real,COORD_DIM,1,9, 8> LaplaceFxd2U;
     sctl::Vector<biest::Surface<Real>> Svec;
     bool half_period_;
     sctl::Integer NFP_, digits_;
@@ -121,7 +125,7 @@ template <class Real> class VirtualCasing {
     sctl::Long trg_Nt_, trg_Np_;
     mutable sctl::Long quad_Nt_, quad_Np_;
     mutable sctl::Vector<Real> dX, normal;
-    mutable bool dosetup;
+    mutable bool dosetup, dosetup_grad;
 };
 
 /**
@@ -176,6 +180,8 @@ template <class Real> class VirtualCasingTestData {
      *  an external current loop respectively.
      */
     static std::tuple<std::vector<Real>, std::vector<Real>> BFieldData(const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np, const std::vector<Real>& X, const sctl::Long trg_Nt, const sctl::Long trg_Np);
+
+    static std::tuple<std::vector<Real>, std::vector<Real>> GradBFieldData(const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np, const std::vector<Real>& X, const sctl::Long trg_Nt, const sctl::Long trg_Np);
 };
 
 #include <virtual-casing.txx>
