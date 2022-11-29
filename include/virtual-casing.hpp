@@ -138,6 +138,7 @@ template <class Real> class VirtualCasing {
     sctl::Long src_Nt_, src_Np_;
     sctl::Long trg_Nt_, trg_Np_;
     mutable sctl::Long quad_Nt_, quad_Np_;
+    mutable sctl::Long grad_quad_Nt_, grad_quad_Np_;
     mutable sctl::Vector<Real> dX, normal;
     mutable bool dosetup, dosetup_grad;
 };

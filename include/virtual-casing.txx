@@ -102,13 +102,13 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeGradBext(con
   if (dosetup_grad) {
     //BiotSavartFxdU.SetupSingular(Svec, biest::BiotSavart3D<Real>::FxdU(), digits_, NFP_*(half_period_?2:1), NFP_*(half_period_?2:1)*src_Nt_, src_Np_, (half_period_?2:1)*trg_Nt_, trg_Np_);
     LaplaceFxd2U.SetupSingular(Svec, biest::Laplace3D<Real>::Fxd2U(), digits_, NFP_*(half_period_?2:1), NFP_*(half_period_?2:1)*src_Nt_, src_Np_, trg_Nt_, trg_Np_);
-    quad_Nt_ = LaplaceFxdU.QuadNt();
-    quad_Np_ = LaplaceFxdU.QuadNp();
+    grad_quad_Nt_ = LaplaceFxd2U.QuadNt();
+    grad_quad_Np_ = LaplaceFxd2U.QuadNp();
 
     sctl::Vector<Real> XX;
-    biest::SurfaceOp<Real>::Resample(XX, quad_Nt_, quad_Np_, Svec[0].Coord(), Svec[0].NTor(), Svec[0].NPol());
+    biest::SurfaceOp<Real>::Resample(XX, grad_quad_Nt_, grad_quad_Np_, Svec[0].Coord(), Svec[0].NTor(), Svec[0].NPol());
 
-    biest::SurfaceOp<Real> SurfOp(comm_, quad_Nt_, quad_Np_);
+    biest::SurfaceOp<Real> SurfOp(comm_, grad_quad_Nt_, grad_quad_Np_);
     SurfOp.Grad2D(dX, XX);
     SurfOp.SurfNormalAreaElem(&normal, nullptr, dX, &XX);
 
@@ -117,7 +117,7 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeGradBext(con
 
   sctl::Vector<Real> B0_, B;
   biest::SurfaceOp<Real>::CompleteVecField(B0_, false, half_period_, NFP_, src_Nt_, src_Np_, sctl::Vector<Real>(B0), (half_period_?sctl::const_pi<Real>()*(1/(Real)(NFP_*trg_Nt_*2)-1/(Real)(NFP_*src_Nt_*2)):0));
-  biest::SurfaceOp<Real>::Resample(B, quad_Nt_, quad_Np_, B0_, NFP_*(half_period_?2:1)*src_Nt_, src_Np_);
+  biest::SurfaceOp<Real>::Resample(B, grad_quad_Nt_, grad_quad_Np_, B0_, NFP_*(half_period_?2:1)*src_Nt_, src_Np_);
 
   std::vector<Real> gradBext;
   { // gradBext = gradBiotSavartFxU.Eval(normal x B);
