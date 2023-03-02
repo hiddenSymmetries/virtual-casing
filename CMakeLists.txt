@@ -136,21 +136,8 @@ if (LAPACK_FOUND)
 	target_link_libraries (${PROJECT_NAME} PRIVATE ${LAPACK_LIBRARIES})
 endif ()
 
-target_include_directories(vc_testing PRIVATE  "include" "BIEST/include" "${FFTW_INCLUDE_DIRS}")
-message(STATUS "FFTW_INCLUDE_DIRS is ${FFTW_INCLUDE_DIRS}")
+target_include_directories(vc_testing PRIVATE  "include" "BIEST/include")
 target_include_directories(${PROJECT_NAME} PRIVATE  "include" "BIEST/include")
-# target_include_directories(${PROJECT_NAME} PRIVATE  ${Python_NumPy_INCLUDE_DIRS})
 
 get_target_property(INC_DIRS vc_testing INCLUDE_DIRECTORIES)
 message(STATUS "vc_testing include directories are ${INC_DIRS}")
-
-#get_cmake_property(_variableNames VARIABLES)
-#list (SORT _variableNames)
-#foreach (_variableName ${_variableNames})
-#    message(STATUS "${_variableName}=${${_variableName}}")
-#endforeach()
-
-#install(TARGETS ${PROJECT_NAME}
-#        #LIBRARY
-#        DESTINATION src/${PROJECT_NAME})
-#install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${PROJECT_NAME})
