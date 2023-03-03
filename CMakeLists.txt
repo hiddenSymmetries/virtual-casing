@@ -89,10 +89,9 @@ else()
     if(COMPILER_SUPPORTS_MARCH_NATIVE)
         set(CMAKE_CXX_FLAGS "-O3 -march=native -mfma -ffp-contract=fast")
     elseif(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "arm64")
-        set(CMAKE_CXX_FLAGS "-O3 -mcpu=apple-a14 -mfma -ffp-contract=fast")
+        set(CMAKE_CXX_FLAGS "-O3 -mcpu=apple-a14 -ffp-contract=fast")
     endif()
 endif()
-
 
 include_directories("/usr/local/include")
 find_package(OpenMP REQUIRED)
@@ -102,6 +101,9 @@ add_subdirectory(extern/pybind11)
 #target_link_libraries(${PROJECT_NAME} PRIVATE pybind11::pybind11)
 pybind11_add_module(${PROJECT_NAME} src/python.cpp)
 add_executable(vc_testing EXCLUDE_FROM_ALL test/virtual-casing.cpp)
+# Fix for PowerPC with PGI compiler
+target_compile_options(vc_testing PUBLIC "$<$<CXX_COMPILER_ID:PGI>:-Wc,--pending_instantiations=1000>")
+target_compile_options(${PROJECT_NAME} PUBLIC "$<$<CXX_COMPILER_ID:PGI>:-Wc,--pending_instantiations=1000>")
 
 if(OpenMP_CXX_FOUND)
     target_link_libraries(vc_testing PRIVATE OpenMP::OpenMP_CXX)
