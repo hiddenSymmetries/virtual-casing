@@ -89,10 +89,9 @@ else()
     if(COMPILER_SUPPORTS_MARCH_NATIVE)
         set(CMAKE_CXX_FLAGS "-O3 -march=native -mfma -ffp-contract=fast")
     elseif(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "arm64")
-        set(CMAKE_CXX_FLAGS "-O3 -mcpu=apple-a14 -mfma -ffp-contract=fast")
+        set(CMAKE_CXX_FLAGS "-O3 -mcpu=apple-a14 -ffp-contract=fast")
     endif()
 endif()
-
 
 include_directories("/usr/local/include")
 find_package(OpenMP REQUIRED)
@@ -102,6 +101,9 @@ add_subdirectory(extern/pybind11)
 #target_link_libraries(${PROJECT_NAME} PRIVATE pybind11::pybind11)
 pybind11_add_module(${PROJECT_NAME} src/python.cpp)
 add_executable(vc_testing EXCLUDE_FROM_ALL test/virtual-casing.cpp)
+# Fix for PowerPC with PGI compiler
+target_compile_options(vc_testing PUBLIC "$<$<CXX_COMPILER_ID:PGI>:-Wc,--pending_instantiations=1000>")
+target_compile_options(${PROJECT_NAME} PUBLIC "$<$<CXX_COMPILER_ID:PGI>:-Wc,--pending_instantiations=1000>")
 
 if(OpenMP_CXX_FOUND)
     target_link_libraries(vc_testing PRIVATE OpenMP::OpenMP_CXX)
@@ -136,21 +138,8 @@ if (LAPACK_FOUND)
 	target_link_libraries (${PROJECT_NAME} PRIVATE ${LAPACK_LIBRARIES})
 endif ()
 
-target_include_directories(vc_testing PRIVATE  "include" "BIEST/include" "${FFTW_INCLUDE_DIRS}")
-message(STATUS "FFTW_INCLUDE_DIRS is ${FFTW_INCLUDE_DIRS}")
+target_include_directories(vc_testing PRIVATE  "include" "BIEST/include")
 target_include_directories(${PROJECT_NAME} PRIVATE  "include" "BIEST/include")
-# target_include_directories(${PROJECT_NAME} PRIVATE  ${Python_NumPy_INCLUDE_DIRS})
 
 get_target_property(INC_DIRS vc_testing INCLUDE_DIRECTORIES)
 message(STATUS "vc_testing include directories are ${INC_DIRS}")
-
-#get_cmake_property(_variableNames VARIABLES)
-#list (SORT _variableNames)
-#foreach (_variableName ${_variableNames})
-#    message(STATUS "${_variableName}=${${_variableName}}")
-#endforeach()
-
-#install(TARGETS ${PROJECT_NAME}
-#        #LIBRARY
-#        DESTINATION src/${PROJECT_NAME})
-#install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${PROJECT_NAME})
