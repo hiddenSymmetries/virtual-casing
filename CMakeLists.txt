@@ -94,7 +94,7 @@ else()
 endif()
 
 include_directories("/usr/local/include")
-find_package(OpenMP REQUIRED)
+find_package(OpenMP)
 
 add_subdirectory(extern/pybind11)
 #Python_add_library(${PROJECT_NAME} MODULE src/python.cpp)
