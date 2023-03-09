@@ -53,7 +53,9 @@ jobs:
       # - name: Fetch all history for all tags
       #   run: git fetch --prune --unshallow
       - name: Install system dependencies
-        run: brew install libomp fftw openblas lapack
+        run: |
+          brew install llvm
+          brew install libomp libgomp fftw openblas lapack
           
       - name: Set up Python
         uses: actions/setup-python@v2
