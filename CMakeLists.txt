@@ -93,14 +93,7 @@ else()
     endif()
 endif()
 
-if(APPLE)
-include_directories("/opt/homebrew/include")
-set(OpenMP_C_FLAGS "-fopenmp=libomp")
-else()
-include_directories("/usr/local/include")
-endif()
-
-find_package(OpenMP)
+find_package(OpenMP REQUIRED)
 
 add_subdirectory(extern/pybind11)
 #Python_add_library(${PROJECT_NAME} MODULE src/python.cpp)
