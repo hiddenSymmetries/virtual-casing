@@ -43,17 +43,17 @@ jobs:
     strategy:
       matrix:
         python: [3.7, 3.8, 3.9, "3.10"]
-        os: [macos-10.15, macos-11]
+        os: [macos-11]
 
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
 
-      # - name: Fetch all history for all tags
-      #   run: git fetch --prune --unshallow
       - name: Install system dependencies
-        run: brew install libomp fftw openblas lapack
+        run: |
+          brew install llvm
+          brew install libomp fftw openblas lapack
           
       - name: Set up Python
         uses: actions/setup-python@v2
