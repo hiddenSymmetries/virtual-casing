@@ -15,8 +15,17 @@ set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
 
 if(DEFINED ENV{CONDA_PREFIX})
     include_directories($ENV{CONDA_PREFIX}/include)
+    link_directories("$ENV{CONDA_PREFIX}/lib")
     message(STATUS "Conda prefix is $ENV{CONDA_PREFIX}")
 endif()
+
+# Add linker and incldue directories for conda build before finding any library
+if (DEFINED ENV{CONDA_BUILD})
+  link_directories("$ENV{BUILD_PREFIX}/lib")
+  include_directories("$ENV{BUILD_PREFIX}/include")
+  message(STATUS "Prefix environment variable is $ENV{BUILD_PREFIX}")
+endif ()
+
 
 find_package (BLAS)
 if (BLAS_FOUND)
@@ -80,7 +89,6 @@ IF(DEFINED ENV{CI})
     set(CMAKE_CXX_FLAGS "-O3 -march=ivybridge -mfma -ffp-contract=fast")
 elseif(DEFINED ENV{CONDA_BUILD})
     message(STATUS "conda build environment detected. Let conda set compilation flags accordingly.")
-    # set(CMAKE_CXX_FLAGS "-O3 -march=ivybridge -mfma -ffp-contract=fast")
 else()
     # Temporary fix till clang 15 is default on macs with Apple silicon
     message(STATUS "Local build detected. Set compilation flags accordingly.")
