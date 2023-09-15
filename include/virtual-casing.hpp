@@ -4,8 +4,6 @@
 #ifndef _BIEST_VIRTUAL_CASING_HPP_
 #define _BIEST_VIRTUAL_CASING_HPP_
 
-template <class Real, sctl::Integer COORD_DIM, sctl::Integer KDIM0, sctl::Integer KDIM1> class BIOpWrapper;
-
 template <class Real> class VirtualCasing {
   static constexpr sctl::Integer COORD_DIM = 3;
 
@@ -37,6 +35,41 @@ template <class Real> class VirtualCasing {
      * @param[in] trg_Nt output Bext-field discretization order in toroidal direction (in one field period).
      *
      * @param[in] trg_Np output Bext-field discretization order in poloidal direction.
+     *
+     * The grids for the input and output data differ in an important
+     * way depending on whether or not stellarator symmetry is
+     * exploited, i.e. on half_period. For this discussion, consider
+     * the toroidal angle phi and poloidal angle theta to have period
+     * 1 (not 2*pi).
+     *
+     * If you do not exploit stellarator symmetry, then half_period
+     * is set to false.  In this case the grids in the toroidal angles
+     * begin at phi=0.  The grid spacing is 1 / (NFP * Nt), and there
+     * is no point at the symmetry plane phi = 1 / NFP.
+     *
+     * If you do wish to exploit stellarator symmetry, set half_period
+     * to true. In this case the toroidal grids are each shifted by
+     * half a grid point, so there is no grid point at phi = 0. The
+     * phi grid for the surface shape has points at 0.5 / (NFP * Nt),
+     * 1.5 / (NFP * Nt), ..., (Nt - 0.5) / (NFP * Nt). The phi grid
+     * for the output B_external has grid points at 0.5 / (NFP *
+     * trg_Nt), 1.5 / (NFP * trg_Nt), ..., (trg_Nt - 0.5) / (NFP *
+     * Nt), and similarly for the input B field with trg -> src.
+     *
+     * The rationale for these conventions is that in both the
+     * stellarator-symmetric and non-stellarator-symmetric cases,
+     * integration over the surface can be achieved with spectral
+     * accuracy on these grids using uniform weights.
+     *
+     * Regardless of half_period, the poloidal grid always ranges
+     * uniformly over [0, 1), with the first grid point at theta = 0,
+     * and no grid point at theta = 1.
+     *
+     * The resolution parameters for the surface shape (Nt, Np), input
+     * magnetic field (src_Nt, src_Np), and output external field
+     * (trg_Nt, trg_Np) do not need to be related to each other in any
+     * particular way. For example, there is no performance penalty if
+     * src_Nt and trg_Nt are relatively prime.
      */
     void Setup(const sctl::Integer digits, const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np, const std::vector<Real>& X, const sctl::Long src_Nt, const sctl::Long src_Np, const sctl::Long trg_Nt, const sctl::Long trg_Np);
 
@@ -55,6 +88,22 @@ template <class Real> class VirtualCasing {
      * virtual-casing principle.
      */
     std::vector<Real> ComputeBext(const std::vector<Real>& B) const;
+
+    /**
+     * Recover the GradBext component from the total field B = Bext + Bint by
+     * applying the virtual-casing principle:
+     * Bext = B/2 + gradG[B . n] + BiotSavart[n x B]
+     *
+     * @param[in] B the total magnetic field on the surface due to all currents.
+     * B = {Bx11, Bx12, ..., Bx1Np, Bx21, Bx22, ... , BxNtNp, By11, ... , Bz11, ...},
+     * where Nt and Np are the number of discretizations in toroidal and
+     * poloidal directions.
+     *
+     * @return the gradient of the component of magnetic field on the surface
+     * due to currents in the exterior of the surface, computed using the
+     * virtual-casing principle.
+     */
+    std::vector<Real> ComputeGradBext(const std::vector<Real>& B) const;
 
     /**
      * Returns the surface normal vectors.
@@ -79,16 +128,19 @@ template <class Real> class VirtualCasing {
     static void CrossProd(sctl::Vector<Real>& AcrossB, const sctl::Vector<Real>& A, const sctl::Vector<Real>& B);
 
     sctl::Comm comm_;
-    //mutable BIOpWrapper<Real,COORD_DIM,3,3> BiotSavartFxU;
-    mutable BIOpWrapper<Real,COORD_DIM,1,3> LaplaceFxdU;
+    mutable biest::FieldPeriodBIOp<Real,COORD_DIM,3,3> BiotSavartFxU;
+    mutable biest::FieldPeriodBIOp<Real,COORD_DIM,1,3> LaplaceFxdU;
+    mutable biest::FieldPeriodBIOp<Real,COORD_DIM,3,9, 8> BiotSavartFxdU;
+    mutable biest::FieldPeriodBIOp<Real,COORD_DIM,1,9, 8> LaplaceFxd2U;
     sctl::Vector<biest::Surface<Real>> Svec;
     bool half_period_;
     sctl::Integer NFP_, digits_;
     sctl::Long src_Nt_, src_Np_;
     sctl::Long trg_Nt_, trg_Np_;
     mutable sctl::Long quad_Nt_, quad_Np_;
+    mutable sctl::Long grad_quad_Nt_, grad_quad_Np_;
     mutable sctl::Vector<Real> dX, normal;
-    mutable bool dosetup;
+    mutable bool dosetup, dosetup_grad;
 };
 
 /**
@@ -143,6 +195,29 @@ template <class Real> class VirtualCasingTestData {
      *  an external current loop respectively.
      */
     static std::tuple<std::vector<Real>, std::vector<Real>> BFieldData(const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np, const std::vector<Real>& X, const sctl::Long trg_Nt, const sctl::Long trg_Np);
+
+    /**
+     * Generate gradient of B field data to be used with class VirtualCasing.
+     *
+     * @param[in] NFP number of toroidal field periods.
+     *
+     * @param[in] half_period whether the result should be on half field period.
+     *
+     * @param[in] Nt surface discretization order in toroidal direction (in one field period).
+     *
+     * @param[in] Np surface discretization order in poloidal direction.
+     *
+     * @param[in] X the surface coordinates in the order {x11, x12, ..., x1Np,
+     * x21, x22, ... , xNtNp, y11, ... , z11, ...}.
+     *
+     * @param[in] trg_Nt output B-field discretization order in toroidal direction (in one field period).
+     *
+     * @param[in] trg_Np output B-field discretization order in poloidal direction.
+     *
+     * @return GradBext and GradBint, magnetic fields generated by an internal current loop and
+     *  an external current loop respectively.
+     */
+    static std::tuple<std::vector<Real>, std::vector<Real>> GradBFieldData(const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np, const std::vector<Real>& X, const sctl::Long trg_Nt, const sctl::Long trg_Np);
 };
 
 #include <virtual-casing.txx>

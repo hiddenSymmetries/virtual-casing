@@ -15,8 +15,17 @@ set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
 
 if(DEFINED ENV{CONDA_PREFIX})
     include_directories($ENV{CONDA_PREFIX}/include)
+    link_directories("$ENV{CONDA_PREFIX}/lib")
     message(STATUS "Conda prefix is $ENV{CONDA_PREFIX}")
 endif()
+
+# Add linker and incldue directories for conda build before finding any library
+if (DEFINED ENV{CONDA_BUILD})
+  link_directories("$ENV{BUILD_PREFIX}/lib")
+  include_directories("$ENV{BUILD_PREFIX}/include")
+  message(STATUS "Prefix environment variable is $ENV{BUILD_PREFIX}")
+endif ()
+
 
 find_package (BLAS)
 if (BLAS_FOUND)
@@ -74,18 +83,24 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     endif()
 endif()
 
+include(CheckCXXCompilerFlag)
 IF(DEFINED ENV{CI})
     message(STATUS "CI environment detected. Set compilation flags accordingly (target ivybridge which supports avx).")
-    set(CMAKE_CXX_FLAGS "-O3 -march=ivybridge -mfma -ffp-contract=fast")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=ivybridge -mfma -ffp-contract=fast")
 elseif(DEFINED ENV{CONDA_BUILD})
     message(STATUS "conda build environment detected. Let conda set compilation flags accordingly.")
-    # set(CMAKE_CXX_FLAGS "-O3 -march=ivybridge -mfma -ffp-contract=fast")
 else()
-    message(STATUS "Local build detected. Set compilation flags accordingly (march=native).")
-    set(CMAKE_CXX_FLAGS "-O3 -march=native -mfma -ffp-contract=fast")
+    # Temporary fix till clang 15 is default on macs with Apple silicon
+    message(STATUS "Local build detected. Set compilation flags accordingly.")
+    unset(COMPILER_SUPPORTS_MARCH_NATIVE CACHE)
+    CHECK_CXX_COMPILER_FLAG(-march=native COMPILER_SUPPORTS_MARCH_NATIVE)
+    if(COMPILER_SUPPORTS_MARCH_NATIVE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -mfma -ffp-contract=fast")
+    elseif(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "arm64")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mcpu=apple-a14 -ffp-contract=fast")
+    endif()
 endif()
 
-include_directories("/usr/local/include")
 find_package(OpenMP REQUIRED)
 
 add_subdirectory(extern/pybind11)
@@ -93,6 +108,9 @@ add_subdirectory(extern/pybind11)
 #target_link_libraries(${PROJECT_NAME} PRIVATE pybind11::pybind11)
 pybind11_add_module(${PROJECT_NAME} src/python.cpp)
 add_executable(vc_testing EXCLUDE_FROM_ALL test/virtual-casing.cpp)
+# Fix for PowerPC with PGI compiler
+target_compile_options(vc_testing PUBLIC "$<$<CXX_COMPILER_ID:PGI>:-Wc,--pending_instantiations=1000>")
+target_compile_options(${PROJECT_NAME} PUBLIC "$<$<CXX_COMPILER_ID:PGI>:-Wc,--pending_instantiations=1000>")
 
 if(OpenMP_CXX_FOUND)
     target_link_libraries(vc_testing PRIVATE OpenMP::OpenMP_CXX)
@@ -127,21 +145,8 @@ if (LAPACK_FOUND)
 	target_link_libraries (${PROJECT_NAME} PRIVATE ${LAPACK_LIBRARIES})
 endif ()
 
-target_include_directories(vc_testing PRIVATE  "include" "BIEST/include" "${FFTW_INCLUDE_DIRS}")
-message(STATUS "FFTW_INCLUDE_DIRS is ${FFTW_INCLUDE_DIRS}")
+target_include_directories(vc_testing PRIVATE  "include" "BIEST/include")
 target_include_directories(${PROJECT_NAME} PRIVATE  "include" "BIEST/include")
-# target_include_directories(${PROJECT_NAME} PRIVATE  ${Python_NumPy_INCLUDE_DIRS})
 
 get_target_property(INC_DIRS vc_testing INCLUDE_DIRECTORIES)
 message(STATUS "vc_testing include directories are ${INC_DIRS}")
-
-#get_cmake_property(_variableNames VARIABLES)
-#list (SORT _variableNames)
-#foreach (_variableName ${_variableNames})
-#    message(STATUS "${_variableName}=${${_variableName}}")
-#endforeach()
-
-#install(TARGETS ${PROJECT_NAME}
-#        #LIBRARY
-#        DESTINATION src/${PROJECT_NAME})
-#install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${PROJECT_NAME})

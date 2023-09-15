@@ -67,7 +67,7 @@ jobs:
 
     - name: Install python dependencies
       run: |
-        pip install wheel numpy cmake ninja
+        pip install wheel numpy cmake ninja scipy
 
     - name: Add to LD_LIBRARY_PATH so scalapack etc can be found
       run: echo "LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu" >> $GITHUB_ENV
@@ -78,6 +78,8 @@ jobs:
     - name: Install virtual-casing package
       run: pip install -v .
 
-    - name: Run examples as part of integrated tests
-      run: python3 test/test.py
+    - name: Run tests
+      run: |
+        cd test
+        python3 -m unittest -v test.py
 

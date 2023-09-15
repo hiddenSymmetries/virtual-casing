@@ -33,12 +33,14 @@ PYBIND11_MODULE(virtual_casing, m) {
     py::class_<VirtualCasing<double>>(m, "VirtualCasing")
         .def(py::init<>())
         .def("setup", &VirtualCasing<double>::Setup)
-        .def("compute_external_B", &VirtualCasing<double>::ComputeBext);
+        .def("compute_external_B", &VirtualCasing<double>::ComputeBext)
+        .def("compute_external_gradB", &VirtualCasing<double>::ComputeGradBext);
 
     py::class_<VirtualCasingTestData<double>>(m, "VirtualCasingTestData")
         .def(py::init<>())
         .def_static("surface_coordinates", &VirtualCasingTestData<double>::SurfaceCoordinates)
-        .def_static("magnetic_field_data", &VirtualCasingTestData<double>::BFieldData);
+        .def_static("magnetic_field_data", &VirtualCasingTestData<double>::BFieldData)
+        .def_static("magnetic_field_grad_data", &VirtualCasingTestData<double>::GradBFieldData);
 
 }
 
