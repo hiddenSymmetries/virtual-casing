@@ -27,9 +27,9 @@ template <class Real> void test(const Real R0, const Real a, const Real kappa, i
       Real theta = 2*M_PI*p/src_Np;
       Real phi   = 2*M_PI*t/(NFP*src_Nt);
 
-      B[(0*src_Nt+t)*src_Np+p] = -sin(theta)/3 * cos(phi);
-      B[(1*src_Nt+t)*src_Np+p] = -sin(theta)/3 * sin(phi);
-      B[(2*src_Nt+t)*src_Np+p] = (1.0/3)*cos(theta) + (1.0/9)*sin(theta)*sin(theta) / (1+2.0/3*cos(theta));
+      B[(0*src_Nt+t)*src_Np+p] = -a*sin(theta) * cos(phi);
+      B[(1*src_Nt+t)*src_Np+p] = -a*sin(theta) * sin(phi);
+      B[(2*src_Nt+t)*src_Np+p] = a*kappa*cos(theta) + kappa*a*a*sin(theta)*sin(theta) / (1+2.0*a*cos(theta));
     }
   }
 
