@@ -8,10 +8,14 @@
 
       integer, allocatable :: norders(:),ixyzs(:),iptype(:)
       integer, allocatable :: ipatch_id(:)
-      real *8, allocatable :: uvs_targ(:,:)
+      real *8, allocatable :: uvs_src(:,:)
       integer, allocatable :: novers(:),ixyzso(:)
       integer, allocatable :: row_ptr(:),col_ind(:),iquad(:)
       real *8, allocatable :: srcover(:,:),wover(:)
+
+      real *8, allocatable :: targs(:,:)
+      integer, allocatable :: ipatch_id_targ(:)
+      real *8, allocatable :: uvs_targ(:,:)
 
       real *8, allocatable :: hvec(:,:)
       real *8, allocatable :: rhs(:)
@@ -23,6 +27,7 @@
       real *8, allocatable :: cms(:,:),rads(:),rad_near(:)
       real *8, allocatable :: rjvec(:,:),rho(:)
       real *8, allocatable :: curlj(:,:),gradrho(:,:)
+      real *8, allocatable :: curlj_targ(:,:),gradrho_targ(:,:)
 
       real *8, allocatable :: wnear(:)
       real *8, allocatable :: w(:,:)
@@ -103,8 +108,8 @@
       allocate(rjvec(3,npts),rho(npts),curlj(3,npts),gradrho(3,npts))
 
 
-      rcu = 0.0d0
-      rcx = 1.1d0
+      rcu = 1.1d0
+      rcx = 0.0d0
       do i=1,npts
         rjvec(1:3,i) = rcu*unm(1:3,i) + rcx*xnm(1:3,i)
         rho(i) = ynm(i)
@@ -112,12 +117,15 @@
 
       eps = 1.0d-5
 
-      allocate(ipatch_id(npts),uvs_targ(2,npts))
+      allocate(ipatch_id(npts),uvs_src(2,npts))
+      
+      
+
       call get_patch_id_uvs(npatches,norders,ixyzs,iptype,npts, &
-       ipatch_id,uvs_targ)
+       ipatch_id,uvs_src)
 
       call lpcomp_virtualcasing(npatches,norders,ixyzs,&
-       iptype,npts,srccoefs,srcvals,12,npts,srcvals,ipatch_id,uvs_targ,&
+       iptype,npts,srccoefs,srcvals,12,npts,srcvals,ipatch_id,uvs_src,&
        eps,rjvec,rho,curlj,gradrho)
 
 
@@ -197,8 +205,101 @@
       call prin2('error in n times grad s0 = *',errnc,1)
       call prin2('error in n dot grad s0 =*',errnd,1)
 
+!
+!  now test at targets, using same locations as sources to make 
+!  computation of unm and xnm vectors easier
+!
+!
+      ntarg = npts
+      allocate(targs(3,ntarg),uvs_targ(2,ntarg),ipatch_id_targ(ntarg))
+      rr = 0.99d0
+      targs(1:3,1:ntarg) = rr*srcvals(1:3,1:ntarg)
 
 
+      allocate(curlj_targ(3,ntarg),gradrho_targ(3,ntarg))
+      call lpcomp_virtualcasing(npatches,norders,ixyzs,&
+       iptype,npts,srccoefs,srcvals,3,ntarg,targs,ipatch_id_targ, &
+       uvs_targ,eps,rjvec,rho,curlj_targ,gradrho_targ)
+!
+!
+       
+
+
+      errnc = 0
+      errnd = 0
+      rnc = 0
+      rnd = 0
+
+      runc = -(nn+0.0d0)/(2*nn+1.0d0)*rcu*rr**(nn)
+      rxnc = -(nn+1.0d0)/(2*nn+1.0d0)*rcx*rr**(nn-1)
+
+      call prin2('runc=*',runc,1)
+      call prin2('rxnc=*',rxnc,1)
+      call prin2('rcu=*',rcu,1)
+      call prin2('rcx=*',rcx,1)
+      rund = 0
+      rxnd = -sqrt((nn+0.0d0)*(nn+1.0d0))/(2*nn+1.0d0)*rcx*rr**(nn-1)
+      do i=1,npts
+        call cross_prod3d(srcvals(10,i),curlj_targ(1,i),vtmp1)
+
+        vtmp2(1) = runc*unm(1,i) + rxnc*xnm(1,i) 
+        vtmp2(2) = runc*unm(2,i) + rxnc*xnm(2,i) 
+        vtmp2(3) = runc*unm(3,i) + rxnc*xnm(3,i) 
+        
+
+        rnc = rnc + (vtmp2(1)**2 + vtmp2(2)**2 + vtmp2(3)**2)*wts(i)
+        errnc = errnc + (vtmp1(1)-vtmp2(1))**2*wts(i)
+        errnc = errnc + (vtmp1(2)-vtmp2(2))**2*wts(i)
+        errnc = errnc + (vtmp1(3)-vtmp2(3))**2*wts(i)
+        wtmp = 0
+        call dot_prod3d(srcvals(10,i),curlj_targ(1,i),wtmp)
+
+        rnd = rnd + ynm(i)**2*wts(i)
+        errnd = errnd + (wtmp - rxnd*ynm(i))**2*wts(i)
+        if(i.lt.3) print *, vtmp1(1),vtmp2(1),vtmp1(1)/vtmp2(1)
+        if(i.lt.3) print *, wtmp,rxnd*ynm(i),rxnd*ynm(i)/wtmp
+      enddo
+
+      errnd = sqrt(errnd/rnd)
+      errnc = sqrt(errnc/rnc)
+
+
+      call prin2('rnc=*',rnc,1)
+      call prin2('rnd=*',rnd,1)
+
+      call prin2('error in n times curl s0 = *',errnc,1)
+      call prin2('error in n dot curl s0 =*',errnd,1)
+
+
+      runc = 0
+      rxnc = sqrt((nn+0.0d0)*(nn+1.0d0))/(2*nn+1.0d0)*rr**(n)
+
+      rynd = -1.0d0/(2*nn+1.0d0)*rr**(n)/2
+
+      errnc = 0
+      errnd = 0
+      rnc = 0
+      rnd = 0
+      do i=1,npts
+        call cross_prod3d(srcvals(10,i),gradrho(1,i),vtmp1)
+        vtmp2(1:3) = rxnc*xnm(1:3,i)
+        rnc = rnc + (vtmp2(1)**2+vtmp2(2)**2+vtmp2(3)**2)*wts(i)
+        errnc = errnc + (vtmp2(1)-vtmp1(1))**2*wts(i)
+        errnc = errnc + (vtmp2(2)-vtmp1(2))**2*wts(i)
+        errnc = errnc + (vtmp2(3)-vtmp1(3))**2*wts(i)
+        
+        wtmp = 0
+        call dot_prod3d(srcvals(10,i),gradrho(1,i),wtmp)
+        errnd = errnd + (wtmp-rynd*ynm(i))**2*wts(i)
+        rnd = rnd + ynm(i)**2*wts(i)
+        if(i.lt.3) print *, vtmp1(1),vtmp2(1),vtmp1(1)/vtmp2(1)
+        if(i.lt.3) print *, wtmp,rynd*ynm(i),rynd*ynm(i)/wtmp
+      enddo
+
+      errnc = sqrt(errnc/rnc)
+      errnd = sqrt(errnd/rnd)
+      call prin2('error in n times grad s0 = *',errnc,1)
+      call prin2('error in n dot grad s0 =*',errnd,1)
 
       return
       end

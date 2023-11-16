@@ -512,13 +512,12 @@
       parameter (ntarg0=1)
 
       ns = nptso
-      ntarg = npts
       done = 1
       pi = atan(done)*4
 
       ifpgh = 0
       ifpghtarg = 2
-      allocate(sources(3,ns),targtmp(3,npts))
+      allocate(sources(3,ns),targtmp(3,ntarg))
 
       nmax = 0
 
@@ -526,7 +525,7 @@
 !  estimate max number of sources in the near field of any target
 !
 !    
-      call get_near_corr_max(npts,row_ptr,nnz,col_ind,npatches,ixyzso,&
+      call get_near_corr_max(ntarg,row_ptr,nnz,col_ind,npatches,ixyzso,&
         nmax)
 
 !
@@ -548,7 +547,7 @@
 
 
 !$OMP PARALLEL DO DEFAULT(SHARED)
-      do i=1,npts
+      do i=1,ntarg
         targtmp(1,i) = targs(1,i)
         targtmp(2,i) = targs(2,i)
         targtmp(3,i) = targs(3,i)
@@ -582,7 +581,7 @@
 
 !      print *, "before fmm"
 
-      call lfmm3d_t_c_g_vec(nd,eps,ns,sources,charges0,npts,targtmp, &
+      call lfmm3d_t_c_g_vec(nd,eps,ns,sources,charges0,ntarg,targtmp, &
         pot_aux,grad_aux,ier)
 
 !$OMP PARALLEL DO DEFAULT(SHARED)         
