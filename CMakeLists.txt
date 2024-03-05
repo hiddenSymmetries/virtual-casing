@@ -145,8 +145,10 @@ if (LAPACK_FOUND)
 	target_link_libraries (${PROJECT_NAME} PRIVATE ${LAPACK_LIBRARIES})
 endif ()
 
-target_include_directories(vc_testing PRIVATE  "include" "BIEST/include")
-target_include_directories(${PROJECT_NAME} PRIVATE  "include" "BIEST/include")
+target_include_directories(vc_testing PRIVATE  "include" "extern/SCTL/include")
+target_include_directories(vc_testing PRIVATE  "include" "extern/BIEST/include")
+target_include_directories(${PROJECT_NAME} PRIVATE  "include" "extern/SCTL/include")
+target_include_directories(${PROJECT_NAME} PRIVATE  "include" "extern/BIEST/include")
 
 get_target_property(INC_DIRS vc_testing INCLUDE_DIRECTORIES)
 message(STATUS "vc_testing include directories are ${INC_DIRS}")

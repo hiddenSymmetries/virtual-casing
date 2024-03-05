@@ -6,13 +6,13 @@ template <class Real> void test(const Real R0, const Real a, const Real kappa, i
   //X = VirtualCasingTestData<Real>::SurfaceCoordinates(NFP, Nt, Np, biest::SurfType::W7X_);
   for (long t = 0; t < Nt; t++) { // toroidal direction
     for (long p = 0; p < Np; p++) { // poloidal direction
-      Real theta = 2*M_PI*p/Np;
-      Real phi   = 2*M_PI*t/(NFP*Nt);
+      Real theta = 2*sctl::const_pi<Real>()*p/Np;
+      Real phi   = 2*sctl::const_pi<Real>()*t/(NFP*Nt);
 
-      Real R = sqrt(R0*R0 + 2*a*R0*cos(theta));
-      Real x = R * cos(phi);
-      Real y = R * sin(phi);
-      Real z = kappa*a*R0/R*sin(theta);
+      Real R = sctl::sqrt<Real>(R0*R0 + 2*a*R0*sctl::cos<Real>(theta));
+      Real x = R * sctl::cos<Real>(phi);
+      Real y = R * sctl::sin<Real>(phi);
+      Real z = kappa*a*R0/R*sctl::sin<Real>(theta);
 
       X[(0*Nt+t)*Np+p] = x;
       X[(1*Nt+t)*Np+p] = y;
@@ -24,12 +24,12 @@ template <class Real> void test(const Real R0, const Real a, const Real kappa, i
   std::vector<Real> B(3*src_Nt*src_Np);
   for (long t = 0; t < src_Nt; t++) { // toroidal direction
     for (long p = 0; p < src_Np; p++) { // poloidal direction
-      Real theta = 2*M_PI*p/src_Np;
-      Real phi   = 2*M_PI*t/(NFP*src_Nt);
+      Real theta = 2*sctl::const_pi<Real>()*p/src_Np;
+      Real phi   = 2*sctl::const_pi<Real>()*t/(NFP*src_Nt);
 
-      B[(0*src_Nt+t)*src_Np+p] = -a*sin(theta) * cos(phi);
-      B[(1*src_Nt+t)*src_Np+p] = -a*sin(theta) * sin(phi);
-      B[(2*src_Nt+t)*src_Np+p] = a*kappa*cos(theta) + kappa*a*a*sin(theta)*sin(theta) / (1+2.0*a*cos(theta));
+      B[(0*src_Nt+t)*src_Np+p] = -a*sctl::sin<Real>(theta) * sctl::cos<Real>(phi);
+      B[(1*src_Nt+t)*src_Np+p] = -a*sctl::sin<Real>(theta) * sctl::sin<Real>(phi);
+      B[(2*src_Nt+t)*src_Np+p] = a*kappa*sctl::cos<Real>(theta) + kappa*a*a*sctl::sin<Real>(theta)*sctl::sin<Real>(theta) / (1+2*a*sctl::cos<Real>(theta));
     }
   }
 
@@ -55,7 +55,7 @@ template <class Real> void test(const Real R0, const Real a, const Real kappa, i
   for (long k = 0; k < 3; k++) { // Print Bext_
     for (long t = 0; t < trg_Nt; t++) {
       for (long p = 0; p < trg_Np; p++) {
-        printf("%10.5f", Bext[(k*trg_Nt+t)*trg_Np+p]);
+        printf("%10.5f", (double)Bext[(k*trg_Nt+t)*trg_Np+p]);
       }
       std::cout<<'\n';
     }
@@ -64,15 +64,15 @@ template <class Real> void test(const Real R0, const Real a, const Real kappa, i
   std::cout<<"\n\nBext . normal = \n";
   for (long t = 0; t < trg_Nt; t++) { // Print Bext_dot_n
     for (long p = 0; p < trg_Np; p++) {
-      printf("%10.5f", Bext_dot_n[t*trg_Np+p]);
+      printf("%10.5f", (double)Bext_dot_n[t*trg_Np+p]);
     }
     std::cout<<'\n';
   }
 
   // Generate VTK visualization
-  WriteVTK("B", NFP, false, Nt, Np, sctl::Vector<Real>(X), src_Nt, src_Np, sctl::Vector<Real>(B));
-  WriteVTK("Bext", NFP, false, Nt, Np, sctl::Vector<Real>(X), trg_Nt, trg_Np, sctl::Vector<Real>(Bext));
-  WriteVTK("Bext_dot_n", NFP, false, Nt, Np, sctl::Vector<Real>(X), trg_Nt, trg_Np, sctl::Vector<Real>(Bext_dot_n));
+  biest::WriteVTK("B", NFP, false, Nt, Np, sctl::Vector<Real>(X), src_Nt, src_Np, sctl::Vector<Real>(B));
+  biest::WriteVTK("Bext", NFP, false, Nt, Np, sctl::Vector<Real>(X), trg_Nt, trg_Np, sctl::Vector<Real>(Bext));
+  biest::WriteVTK("Bext_dot_n", NFP, false, Nt, Np, sctl::Vector<Real>(X), trg_Nt, trg_Np, sctl::Vector<Real>(Bext_dot_n));
 }
 
 int main() {

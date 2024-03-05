@@ -88,7 +88,7 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBext(const s
     for (sctl::Long k = 0; k < COORD_DIM; k++) {
       for (sctl::Long i = 0; i < trg_Nt_; i++) {
         for (sctl::Long j = 0; j < trg_Np_; j++) {
-          Bext[(k*trg_Nt_+i)*trg_Np_+j] += Bext_[(k*trg_Nt_+i)*trg_Np_+j] + 0.5 * B_[(k*NFP_*trg_Nt__+i)*trg_Np_+j];
+          Bext[(k*trg_Nt_+i)*trg_Np_+j] += Bext_[(k*trg_Nt_+i)*trg_Np_+j] + (Real)0.5 * B_[(k*NFP_*trg_Nt__+i)*trg_Np_+j];
         }
       }
     }
@@ -169,8 +169,8 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeGradBext(con
 template <class Real> std::vector<Real> VirtualCasing<Real>::GetNormal(const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np) const {
   SCTL_ASSERT(Svec[0].NTor() && Svec[0].NPol());
   const sctl::Long Nt_ = NFP*(half_period?2:1)*Nt;
-  const sctl::Long skip_tor = (sctl::Long)std::ceil(Svec[0].NTor()/(Real)Nt_);
-  const sctl::Long skip_pol = (sctl::Long)std::ceil(Svec[0].NPol()/(Real)Np);
+  const sctl::Long skip_tor = (sctl::Long)sctl::ceil(Svec[0].NTor()/(Real)Nt_);
+  const sctl::Long skip_pol = (sctl::Long)sctl::ceil(Svec[0].NPol()/(Real)Np);
   const sctl::Long Nt0 = skip_tor*Nt_;
   const sctl::Long Np0 = skip_pol*Np;
 
@@ -309,9 +309,9 @@ template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCa
     Real normal_scal = 1/sctl::sqrt<Real>(normal_[0]*normal_[0]+normal_[1]*normal_[1]+normal_[2]*normal_[2]);
     normal_ *= normal_scal;
 
-    e0[0] = drand48();
-    e0[1] = drand48();
-    e0[2] = drand48();
+    e0[0] = (Real)drand48();
+    e0[1] = (Real)drand48();
+    e0[2] = (Real)drand48();
     e0 = cross_norm(e0,normal_)*radius;
     e1 = cross_norm(e0,normal_)*radius;
 
@@ -381,7 +381,7 @@ template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCa
         biest::SurfaceOp<Real> SurfOp(comm, Nt, Np);
         SurfOp.Grad2D(dX, S.Coord());
         SurfOp.SurfNormalAreaElem(&normal, nullptr, dX, &S.Coord());
-        S.Coord() += -2.17*normal;
+        S.Coord() += (Real)(-2.17)*normal;
 
         coord = 0;
         for (sctl::Long t = 0; t < Nt; t++) {
@@ -404,7 +404,7 @@ template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCa
       }
     }
     source0.PushBack(X);
-    density0.PushBack(dX*0.05);
+    density0.PushBack(dX*(Real)0.05);
   }
   for (int i = 0; i < NFP; i++) { // Set outside sources (source1, density1)
     const sctl::Long N = source0[0].Dim()/COORD_DIM;
