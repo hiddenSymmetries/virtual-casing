@@ -1,5 +1,5 @@
 CC = gcc
-CXX=g++ # requires g++-8 or newer / icpc (with gcc compatibility 7.5 or newer) / clang++ with llvm-10 or newer
+CXX = g++ # requires g++-8 or newer / icpc (with gcc compatibility 7.5 or newer) / clang++ with llvm-10 or newer
 CXXFLAGS = -std=c++11 -fopenmp -Wall -Wfloat-conversion # need C++11 and OpenMP
 
 SCTL_DIR=extern/SCTL
@@ -33,6 +33,7 @@ CXXFLAGS += -DSCTL_SIG_HANDLER
 #CXXFLAGS += -lopenblas -DSCTL_HAVE_BLAS -DSCTL_HAVE_LAPACK
 #CXXFLAGS += -qmkl -DSCTL_HAVE_BLAS -DSCTL_HAVE_LAPACK -DSCTL_HAVE_FFTW3_MKL # use MKL BLAS, LAPACK and FFTW (Intel compiler)
 CXXFLAGS += -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -DSCTL_HAVE_BLAS -DSCTL_HAVE_LAPACK # use MKL BLAS and LAPACK (non-Intel compiler)
+#CXXFLAGS += -DSCTL_HAVE_SVML
 
 CXXFLAGS += -lfftw3_omp -DSCTL_FFTW_THREADS
 CXXFLAGS += -lfftw3 -DSCTL_HAVE_FFTW
