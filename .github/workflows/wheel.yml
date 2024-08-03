@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -31,7 +31,7 @@ jobs:
           CIBW_DEPENDENCY_VERSIONS: latest
           CIBW_BEFORE_BUILD_LINUX: pip install --upgrade pip setuptools wheel numpy cmake ninja && git config --global --add safe.directory /project
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
 
@@ -46,17 +46,16 @@ jobs:
         os: [macos-12]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Install system dependencies
         run: |
-          brew install gcc@12
-          brew install libomp fftw openblas lapack
+          brew install fftw lapack # gcc@12 libomp openblas
           
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
 
@@ -80,7 +79,7 @@ jobs:
         if: ${{ failure() }}
         uses: mxschmitt/action-tmate@v3
          
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
 
@@ -89,14 +88,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       # - name: Fetch all history for all tags
       #   run: git fetch --prune --unshallow
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: '3.8'
@@ -110,7 +109,7 @@ jobs:
       - name: Build sdist
         run: python setup.py sdist
         
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           path: dist/*.tar.gz
 
