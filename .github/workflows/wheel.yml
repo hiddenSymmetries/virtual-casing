@@ -26,10 +26,10 @@ jobs:
           CIBW_ARCHS_LINUX: x86_64
           CIBW_BEFORE_ALL_LINUX: yum install -y lapack-devel openblas-devel fftw-devel
           # Use manylinux2014
-          #CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_28_x86_64
           CIBW_SKIP: cp27-*
           CIBW_DEPENDENCY_VERSIONS: latest
-          CIBW_BEFORE_BUILD_LINUX: pip install --upgrade pip setuptools wheel numpy cmake ninja 
+          CIBW_BEFORE_BUILD_LINUX: pip install --upgrade pip setuptools wheel numpy cmake ninja && git config --global --add safe.directory /project
 
       - uses: actions/upload-artifact@v2
         with:
@@ -43,7 +43,7 @@ jobs:
     strategy:
       matrix:
         python: [3.7, 3.8, 3.9, "3.10"]
-        os: [macos-11]
+        os: [macos-12]
 
     steps:
       - uses: actions/checkout@v2
@@ -52,7 +52,7 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          brew install llvm
+          brew install gcc@12
           brew install libomp fftw openblas lapack
           
       - name: Set up Python
@@ -68,11 +68,17 @@ jobs:
 
       - name: Build and repair wheels
         run: |
+          export CC=gcc-12
+          export CXX=g++-12
           python -m pip wheel -w wheel --no-deps .
           python --version
           delocate-wheel --require-archs x86_64 -w ./wheelhouse ./wheel/*.whl
           ls wheel
           ls wheelhouse
+
+      - name: Debug with tmate on failure
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
          
       - uses: actions/upload-artifact@v2
         with:
