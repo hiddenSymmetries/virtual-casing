@@ -64,10 +64,16 @@ all : $(TARGET_BIN) $(TARGET_LIB)
 $(BINDIR)/%: ./test/%.cpp
 	-@$(MKDIRS) $(dir $@)
 	$(CXX) $(CXXFLAGS) -I$(INCDIR) $^ -o $@
+ifeq "$(OS)" "Darwin"
+	/usr/bin/dsymutil $@ -o $@.dSYM
+endif
 
 $(BINDIR)/%: ./test/%.c $(TARGET_LIB)
 	-@$(MKDIRS) $(dir $@)
 	$(CC) $(CXXFLAGS) -I$(INCDIR) $(TARGET_LIB) -lm -ldl -lstdc++ $^ -o $@
+ifeq "$(OS)" "Darwin"
+	/usr/bin/dsymutil $@ -o $@.dSYM
+endif
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	-@$(MKDIRS) $(dir $@)

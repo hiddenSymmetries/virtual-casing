@@ -71,7 +71,7 @@ template <class Real> class VirtualCasing {
      * particular way. For example, there is no performance penalty if
      * src_Nt and trg_Nt are relatively prime.
      */
-    void Setup(const sctl::Integer digits, const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np, const std::vector<Real>& X, const sctl::Long src_Nt, const sctl::Long src_Np, const sctl::Long trg_Nt, const sctl::Long trg_Np);
+    void Setup(const sctl::Integer digits, const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np, const std::vector<Real>& X, const sctl::Long src_Nt, const sctl::Long src_Np, const sctl::Long trg_Nt = -1, const sctl::Long trg_Np = -1);
 
     /**
      * Recover the Bext component from the total field B = Bext + Bint by
@@ -88,6 +88,25 @@ template <class Real> class VirtualCasing {
      * virtual-casing principle.
      */
     std::vector<Real> ComputeBext(const std::vector<Real>& B) const;
+
+    /**
+     * Recover the Bext component from the total field B = Bext + Bint by
+     * applying the virtual-casing principle (for off-surface target points):
+     * Bext = gradG[B . n] + BiotSavart[n x B]
+     *
+     * @param[in] B the total magnetic field on the surface due to all currents.
+     * B = {Bx11, Bx12, ..., Bx1Np, Bx21, Bx22, ... , BxNtNp, By11, ... , Bz11, ...},
+     * where Nt and Np are the number of discretizations in toroidal and
+     * poloidal directions.
+     *
+     * @param[in] Xt the vector of coordinates for the off-surface evaluation
+     * points in the order {x1, x2, ..., xn, y1, ..., z1, ..., Zn}.
+     *
+     * @return the component of magnetic field at the evaluation points due to
+     * currents in the exterior of the surface, computed using the
+     * virtual-casing principle.
+     */
+    std::vector<Real> ComputeBextOffSurf(const std::vector<Real>& B, const std::vector<Real>& Xt) const;
 
     /**
      * Recover the GradBext component from the total field B = Bext + Bint by

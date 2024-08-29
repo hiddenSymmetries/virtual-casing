@@ -28,6 +28,8 @@ template <class Real> void VirtualCasing<Real>::Setup(const sctl::Integer digits
 
 template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBext(const std::vector<Real>& B0) const {
   SCTL_ASSERT((sctl::Long)B0.size() == COORD_DIM * src_Nt_ * src_Np_);
+  SCTL_ASSERT(trg_Nt_ > 0);
+  SCTL_ASSERT(trg_Np_ > 0);
 
   if (dosetup) {
     //BiotSavartFxU.SetupSingular(Svec, biest::BiotSavart3D<Real>::FxU(), digits_, NFP_*(half_period_?2:1), NFP_*(half_period_?2:1)*src_Nt_, src_Np_, (half_period_?2:1)*trg_Nt_, trg_Np_);
@@ -92,6 +94,63 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBext(const s
         }
       }
     }
+  }
+  return Bext;
+}
+
+template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBextOffSurf(const std::vector<Real>& B0, const std::vector<Real>& Xt) const {
+  SCTL_ASSERT((sctl::Long)B0.size() == COORD_DIM * src_Nt_ * src_Np_);
+  const sctl::Long quad_Nt_ = std::max(src_Nt_, Svec[0].NTor());
+  const sctl::Long quad_Np_ = std::max(src_Np_, Svec[0].NPol());
+
+  sctl::Vector<Real> XX;
+  biest::SurfaceOp<Real>::Resample(XX, quad_Nt_, quad_Np_, Svec[0].Coord(), Svec[0].NTor(), Svec[0].NPol());
+  sctl::Vector<biest::Surface<Real>> Svec_(1);
+  Svec_[0] = biest::Surface<Real>(quad_Nt_, quad_Np_);
+  Svec_[0].Coord() = XX;
+
+  biest::SurfaceOp<Real> SurfOp(comm_, quad_Nt_, quad_Np_);
+  sctl::Vector<Real> dX, normal;
+  SurfOp.Grad2D(dX, XX);
+  SurfOp.SurfNormalAreaElem(&normal, nullptr, dX, &XX);
+
+  sctl::Vector<Real> B0_, B;
+  biest::SurfaceOp<Real>::CompleteVecField(B0_, false, half_period_, NFP_, src_Nt_, src_Np_, sctl::Vector<Real>(B0), (half_period_?sctl::const_pi<Real>()*(1/(Real)(NFP_*trg_Nt_*2)-1/(Real)(NFP_*src_Nt_*2)):0));
+  biest::SurfaceOp<Real>::Resample(B, quad_Nt_, quad_Np_, B0_, NFP_*(half_period_?2:1)*src_Nt_, src_Np_);
+
+  sctl::Vector<Real> BdotN, J;
+  DotProd(BdotN, B, normal);
+  CrossProd(J, normal, B);
+
+  std::vector<Real> Bext;
+  if (0) { // Bext = BiotSavartFxU.Eval(normal x B);
+    SCTL_ASSERT(quad_Nt_ >= 13);
+    SCTL_ASSERT(quad_Np_ >= 13);
+    biest::BoundaryIntegralOp<Real, 3, 3, 1, 6, 1> BiotSavartFxU;
+    BiotSavartFxU.SetupSingular(Svec_, biest::BiotSavart3D<Real>::FxU());
+
+    sctl::Vector<Real> Bext_;
+    BiotSavartFxU.EvalOffSurface(Bext_, sctl::Vector<Real>(Xt), J);
+    Bext.assign(Bext_.begin(), Bext_.end());
+  }
+  if (0) { // Bext += gradG[B . normal]
+    sctl::Vector<Real> Bext_;
+    biest::BoundaryIntegralOp<Real, 1, 3, 1, 6, 1> LaplaceFxdU;
+    LaplaceFxdU.SetupSingular(Svec_, biest::Laplace3D<Real>::FxdU());
+    LaplaceFxdU.EvalOffSurface(Bext_, sctl::Vector<Real>(Xt), BdotN);
+    for (sctl::Long i = 0; i < Bext_.Dim(); i++) Bext[i] += Bext_[i];
+  }
+  { // Adaptive evaluation
+    const auto& X = Svec[0].Coord();
+    std::vector<Real> XX(X.begin(), X.end());
+    std::vector<Real> J_(J.begin(), J.end());
+
+    std::vector<Real> BdotN_(BdotN.Dim());
+    for (sctl::Long i = 0; i < BdotN.Dim(); i++) BdotN_[i] = -BdotN[i];
+
+    biest::ExtVacuumField<Real> ext_vacuum;
+    ext_vacuum.Setup(digits_, 1, Svec[0].NTor(), Svec[0].NPol(), XX, quad_Nt_, quad_Np_);
+    Bext = ext_vacuum.EvalOffSurface(Xt, BdotN_, J_);
   }
   return Bext;
 }

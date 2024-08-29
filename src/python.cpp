@@ -34,6 +34,7 @@ PYBIND11_MODULE(virtual_casing, m) {
         .def(py::init<>())
         .def("setup", &VirtualCasing<double>::Setup)
         .def("compute_external_B", &VirtualCasing<double>::ComputeBext)
+        .def("compute_external_B_offsurf", &VirtualCasing<double>::ComputeBextOffSurf)
         .def("compute_external_gradB", &VirtualCasing<double>::ComputeGradBext);
 
     py::class_<VirtualCasingTestData<double>>(m, "VirtualCasingTestData")
