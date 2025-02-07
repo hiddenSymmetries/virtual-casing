@@ -4,105 +4,66 @@ on: [push, pull_request]
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }} (${{ matrix.arch }})
+    name: Build wheels on ${{ matrix.runner }} #(${{ runner.arch }})
     runs-on: ${{ matrix.runner }}
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Linux (Ubuntu)
-          - os: ubuntu-latest
-            arch: x86_64
-            runner: ubuntu-latest
+          - runner: ubuntu-latest # x86_64
+            arch_flag: "-march=ivybridge"
 
-          # macOS
-          #- os: macos-latest
-          #  arch: arm64
-          #  runner: macos-latest
+          - runner: macos-14 # arm64
+            deployment_target: 14
+            arch_flag: "-mcpu=apple-m1"
+
+          - runner: macos-13 # x86_64
+            deployment_target: 13
+            arch_flag: "-march=ivybridge"
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      # - name: Fetch all history for all tags
-      #   run: git fetch --prune --unshallow
-
-      - name: Build wheels (Linux)
-        if: matrix.os == 'ubuntu-latest' || matrix.arch == 'x86_64'
-        uses: joerick/cibuildwheel@v2.22.0
-        # to supply options, put them in 'env', like:
-        env:
-          # Only build for python 3.{7,8,9}
-          CIBW_BUILD : cp38-* cp39-* cp310-* cp311-*
-          CIBW_ENVIRONMENT: CI=True
-          # Supports only x86_64 arch for linux
-          CIBW_ARCHS_LINUX: x86_64
-          CIBW_BEFORE_ALL_LINUX: yum install -y lapack-devel openblas-devel fftw-devel
-          # Use manylinux2014
-          CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_28_x86_64
-          CIBW_DEPENDENCY_VERSIONS: latest
-          CIBW_BEFORE_BUILD_LINUX: pip install --upgrade pip setuptools wheel numpy cmake ninja && git config --global --add safe.directory /project
-          CIBW_SKIP: "*-musllinux_*"
-
-      #- name: Build wheels macOS (arm64)
-      #  if: matrix.os == 'macos-latest' && matrix.arch == 'arm64'
-      #  run: python -m cibuildwheel --output-dir wheelhouse
-
-      - uses: actions/upload-artifact@v4
-        with:
-          path: ./wheelhouse/*.whl
-          overwrite: true
-
-
-  # Alternate setup for mac_wheel because cibuildwheel is failing for mac
-  mac_wheels:
-    name: Build wheels on mac 
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        python: [3.8, 3.9, "3.10", "3.11"]
-        os: [macos-13]
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install system dependencies
-        run: |
-          brew install fftw lapack # gcc@12 libomp openblas
-          
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
+          python-version: "3.x"
 
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip 
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel
 
-      - name: Install wheel builder packages 
-        run: python -m pip install setuptools wheel delocate numpy ninja
-
-      - name: Build and repair wheels
-        run: |
-          export CC=gcc-12
-          export CXX=g++-12
-          python -m pip wheel -w wheel --no-deps .
-          python --version
-          delocate-wheel --require-archs x86_64 -w ./wheelhouse ./wheel/*.whl
-          ls wheel
-          ls wheelhouse
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_ARCHS_LINUX: x86_64
+          CIBW_ENVIRONMENT_LINUX: CI=True VC_ARCH_FLAG=${{ matrix.arch_flag }}
+          CIBW_BEFORE_ALL_LINUX: yum install -y lapack-devel openblas-devel fftw-devel
+          CIBW_BEFORE_BUILD_LINUX: pip install --upgrade pip setuptools wheel numpy cmake ninja && git config --global --add safe.directory /project
+          CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_28_x86_64
+          CIBW_SKIP: "*-musllinux_*"
+          CIBW_ENVIRONMENT_MACOS: CI=True VC_ARCH_FLAG=${{ matrix.arch_flag }} MACOSX_DEPLOYMENT_TARGET=${{ matrix.deployment_target }} CC=gcc-12 CXX=g++-12 # with GCC
+          #CIBW_ENVIRONMENT_MACOS: CI=True VC_ARCH_FLAG=${{ matrix.arch_flat }} MACOSX_DEPLOYMENT_TARGET=${{ matrix.deployment_target }} OpenMP_ROOT=$(brew --prefix)/opt/libomp # with Apple Clang
+          CIBW_BEFORE_ALL_MACOS: brew install fftw lapack gcc@12 libomp openblas
+          CIBW_BEFORE_BUILD_MACOS: pip install --upgrade pip setuptools wheel numpy cmake ninja && git config --global --add safe.directory /project
+          CIBW_BUILD : cp38-* cp39-* cp310-* cp311-*
 
       - name: Debug with tmate on failure
         if: ${{ failure() }}
         uses: mxschmitt/action-tmate@v3
-         
-      - uses: actions/upload-artifact@v4
         with:
-          path: ./wheelhouse/*.whl
+          timeout: 900  # 15 minutes
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ runner.os }}-${{ runner.arch }}
+          path: wheelhouse/*.whl
           overwrite: true
+
 
   build_sdist:
     name: Build source distribution
@@ -113,17 +74,11 @@ jobs:
         with:
           submodules: recursive
 
-      # - name: Fetch all history for all tags
-      #   run: git fetch --prune --unshallow
-
       - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: '3.8'
 
-      # - name: Download all submodules
-      #   run: git submodule update --init
-        
       # - name: Install setuptools_scm
       #   run: python -m pip install setuptools_scm
 
@@ -132,26 +87,28 @@ jobs:
         
       - uses: actions/upload-artifact@v4
         with:
+          name: sdist
           path: dist/*.tar.gz
           overwrite: true
 
+
   upload_pypi:
-    needs: [build_wheels, mac_wheels, build_sdist]
-    # needs: [build_wheels,  build_sdist]
+    needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     # upload to PyPI on every tag starting with 'v'
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
     # alternatively, to publish when a GitHub Release is created, use the following rule:
     # if: github.event_name == 'release' && github.event.action == 'published'
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
           path: dist
+          merge-multiple: true
 
-      - uses: pypa/gh-action-pypi-publish@master
+      - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           # password: ${{ secrets.PYPI_TOKEN }}
           password: ${{ secrets.TEST_PYPI_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
+          repository-url: https://test.pypi.org/legacy/
+

@@ -8,7 +8,7 @@
 
 name: Test
 
-on: [push, pull_request, workflow_dispatch] 
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   test:
@@ -24,10 +24,10 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11"] # To sync with coveragerc use 3 level
 
     steps:
-    # First print out lots of information. We do this in separate 
+    # First print out lots of information. We do this in separate
     # "name" blocks because otherwise the output gets mixed together
     # in the github actions log.
-    
+
     - name: Print user and group id
       run: set -ex && id
 
