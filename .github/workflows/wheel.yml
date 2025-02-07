@@ -3,9 +3,23 @@ name: Wheel Builder
 on: [push, pull_request]
 
 jobs:
-  linux_wheels:
-    name: Build wheels on ubuntu
-    runs-on: ubuntu-latest
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux (Ubuntu)
+          - os: ubuntu-latest
+            arch: x86_64
+            runner: ubuntu-latest
+
+          # macOS
+          #- os: macos-latest
+          #  arch: arm64
+          #  runner: macos-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -15,8 +29,9 @@ jobs:
       # - name: Fetch all history for all tags
       #   run: git fetch --prune --unshallow
 
-      - name: Build wheels
-        uses: joerick/cibuildwheel@v1.9.0
+      - name: Build wheels (Linux)
+        if: matrix.os == 'ubuntu-latest' || matrix.arch == 'x86_64'
+        uses: joerick/cibuildwheel@v2.22.0
         # to supply options, put them in 'env', like:
         env:
           # Only build for python 3.{7,8,9}
@@ -27,9 +42,13 @@ jobs:
           CIBW_BEFORE_ALL_LINUX: yum install -y lapack-devel openblas-devel fftw-devel
           # Use manylinux2014
           CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_28_x86_64
-          CIBW_SKIP: cp27-*
           CIBW_DEPENDENCY_VERSIONS: latest
           CIBW_BEFORE_BUILD_LINUX: pip install --upgrade pip setuptools wheel numpy cmake ninja && git config --global --add safe.directory /project
+          CIBW_SKIP: "*-musllinux_*"
+
+      #- name: Build wheels macOS (arm64)
+      #  if: matrix.os == 'macos-latest' && matrix.arch == 'arm64'
+      #  run: python -m cibuildwheel --output-dir wheelhouse
 
       - uses: actions/upload-artifact@v4
         with:
@@ -44,7 +63,7 @@ jobs:
     strategy:
       matrix:
         python: [3.8, 3.9, "3.10", "3.11"]
-        os: [macos-latest]
+        os: [macos-13]
 
     steps:
       - uses: actions/checkout@v4
@@ -117,8 +136,8 @@ jobs:
           overwrite: true
 
   upload_pypi:
-    needs: [linux_wheels, mac_wheels, build_sdist]
-    # needs: [linux_wheels,  build_sdist]
+    needs: [build_wheels, mac_wheels, build_sdist]
+    # needs: [build_wheels,  build_sdist]
     runs-on: ubuntu-latest
     # upload to PyPI on every tag starting with 'v'
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
