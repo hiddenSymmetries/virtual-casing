@@ -52,7 +52,7 @@ template <class Real> void test(int digits, int NFP, bool half_period, long Nt, 
   }
   { // Set B_offsurf, Bext_offsurf
     std::vector<Real> Bint_offsurf_;
-    std::tie(Bext_offsurf, Bint_offsurf_) = VirtualCasingTestData<Real>::BFieldData(NFP, half_period, Nt, Np, X, Xtrg_offsurf);
+    std::tie(Bext_offsurf, Bint_offsurf_) = VirtualCasingTestData<Real>::BFieldDataOffSurf(NFP, half_period, Nt, Np, X, Xtrg_offsurf);
     const auto B_offsurf_ = sctl::Vector<Real>(Bint_offsurf_) + sctl::Vector<Real>(Bext_offsurf);
     B_offsurf.assign(B_offsurf_.begin(), B_offsurf_.end());
   }
@@ -88,7 +88,7 @@ template <class Real> void test(int digits, int NFP, bool half_period, long Nt, 
     }
 
     std::vector<Real> Bext_offsurf; // reference data
-    std::tie(Bext_offsurf, std::ignore) = VirtualCasingTestData<Real>::BFieldData(NFP, half_period, Nt, Np, X, Xtrg);
+    std::tie(Bext_offsurf, std::ignore) = VirtualCasingTestData<Real>::BFieldDataOffSurf(NFP, half_period, Nt, Np, X, Xtrg);
     const auto Bext_offsurf_ = virtual_casing.ComputeBextOffSurf(B, Xtrg, (half_period?1:2)*400, 400); // max_Nt, max_Np = 400
 
     { // Write VTK

@@ -301,7 +301,7 @@ template <class Real> std::vector<Real> VirtualCasingTestData<Real>::SurfaceCoor
   return X;
 }
 
-template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCasingTestData<Real>::BFieldData(const sctl::Integer NFP, const bool half_period, const sctl::Long surf_Nt, const sctl::Long surf_Np, const std::vector<Real>& X, const std::vector<Real>& X_trg) {
+template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCasingTestData<Real>::BFieldDataOffSurf(const sctl::Integer NFP, const bool half_period, const sctl::Long surf_Nt, const sctl::Long surf_Np, const std::vector<Real>& X, const std::vector<Real>& X_trg) {
   auto WriteVTK_ = [](const std::string& fname, const sctl::Vector<sctl::Vector<Real>>& coords, const sctl::Vector<sctl::Vector<Real>>& values) {
     biest::VTKData data;
     typedef biest::VTKData::VTKReal VTKReal;
@@ -495,7 +495,7 @@ template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCa
   }
 
   std::vector<Real> Bint_, Bext_;
-  std::tie(Bext_, Bint_) = BFieldData(NFP, half_period, surf_Nt, surf_Np, X, X_trg);
+  std::tie(Bext_, Bint_) = BFieldDataOffSurf(NFP, half_period, surf_Nt, surf_Np, X, X_trg);
 
   std::vector<Real> Bint(COORD_DIM*trg_Nt*trg_Np);
   std::vector<Real> Bext(COORD_DIM*trg_Nt*trg_Np);
