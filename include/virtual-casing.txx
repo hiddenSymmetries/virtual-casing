@@ -32,7 +32,7 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBext(const s
   SCTL_ASSERT(trg_Np_ > 0);
 
   if (dosetup) {
-    //BiotSavartFxU.SetupSingular(Svec, biest::BiotSavart3D<Real>::FxU(), digits_, NFP_*(half_period_?2:1), NFP_*(half_period_?2:1)*src_Nt_, src_Np_, (half_period_?2:1)*trg_Nt_, trg_Np_);
+    //BiotSavartFxU.SetupSingular(Svec, biest::BiotSavart3D<Real>::FxU(), digits_, NFP_*(half_period_?2:1), NFP_*(half_period_?2:1)*src_Nt_, src_Np_, trg_Nt_, trg_Np_);
     LaplaceFxdU.SetupSingular(Svec, biest::Laplace3D<Real>::FxdU(), digits_, NFP_*(half_period_?2:1), NFP_*(half_period_?2:1)*src_Nt_, src_Np_, trg_Nt_, trg_Np_);
     quad_Nt_ = LaplaceFxdU.QuadNt();
     quad_Np_ = LaplaceFxdU.QuadNp();
@@ -57,7 +57,7 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBext(const s
     CrossProd(J, normal, B);
     if (0) {
       sctl::Vector<Real> Bext_;
-      BiotSavartFxU.Eval(Bext_, J);
+      BiotSavartFxU.Eval(Bext_, -J);
       Bext.assign(Bext_.begin(), Bext_.end());
     } else {
       const sctl::Long N = trg_Nt_ * trg_Np_;
@@ -98,9 +98,9 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBext(const s
   return Bext;
 }
 
-template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBextOffSurf(const std::vector<Real>& B0, const std::vector<Real>& Xt) const {
+template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBextOffSurf(const std::vector<Real>& B0, const std::vector<Real>& Xt, const sctl::Long max_Nt, const sctl::Long max_Np) const {
   SCTL_ASSERT((sctl::Long)B0.size() == COORD_DIM * src_Nt_ * src_Np_);
-  const sctl::Long quad_Nt_ = std::max(src_Nt_, Svec[0].NTor());
+  const sctl::Long quad_Nt_ = std::max(NFP_*(half_period_?2:1)*src_Nt_, Svec[0].NTor());
   const sctl::Long quad_Np_ = std::max(src_Np_, Svec[0].NPol());
 
   sctl::Vector<Real> XX;
@@ -130,7 +130,7 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBextOffSurf(
     BiotSavartFxU.SetupSingular(Svec_, biest::BiotSavart3D<Real>::FxU());
 
     sctl::Vector<Real> Bext_;
-    BiotSavartFxU.EvalOffSurface(Bext_, sctl::Vector<Real>(Xt), J);
+    BiotSavartFxU.EvalOffSurface(Bext_, sctl::Vector<Real>(Xt), -J);
     Bext.assign(Bext_.begin(), Bext_.end());
   }
   if (0) { // Bext += gradG[B . normal]
@@ -144,13 +144,14 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBextOffSurf(
     const auto& X = Svec[0].Coord();
     std::vector<Real> XX(X.begin(), X.end());
     std::vector<Real> J_(J.begin(), J.end());
+    for (auto& j : J_) j = -j;
 
     std::vector<Real> BdotN_(BdotN.Dim());
     for (sctl::Long i = 0; i < BdotN.Dim(); i++) BdotN_[i] = -BdotN[i];
 
     biest::ExtVacuumField<Real> ext_vacuum;
     ext_vacuum.Setup(digits_, 1, Svec[0].NTor(), Svec[0].NPol(), XX, quad_Nt_, quad_Np_);
-    Bext = ext_vacuum.EvalOffSurface(Xt, BdotN_, J_);
+    Bext = ext_vacuum.EvalOffSurface(Xt, BdotN_, J_, (half_period_?2:1)*max_Nt, max_Np);
   }
   return Bext;
 }
@@ -300,7 +301,7 @@ template <class Real> std::vector<Real> VirtualCasingTestData<Real>::SurfaceCoor
   return X;
 }
 
-template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCasingTestData<Real>::BFieldData(const sctl::Integer NFP, const bool half_period, const sctl::Long surf_Nt, const sctl::Long surf_Np, const std::vector<Real>& X, const sctl::Long trg_Nt, const sctl::Long trg_Np) {
+template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCasingTestData<Real>::BFieldData(const sctl::Integer NFP, const bool half_period, const sctl::Long surf_Nt, const sctl::Long surf_Np, const std::vector<Real>& X, const std::vector<Real>& X_trg) {
   auto WriteVTK_ = [](const std::string& fname, const sctl::Vector<sctl::Vector<Real>>& coords, const sctl::Vector<sctl::Vector<Real>>& values) {
     biest::VTKData data;
     typedef biest::VTKData::VTKReal VTKReal;
@@ -391,37 +392,13 @@ template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCa
     source.PushBack(X);
     density.PushBack(dX);
   };
-  auto DotProd = [](sctl::Vector<Real>& AdotB, const sctl::Vector<Real>& A, const sctl::Vector<Real>& B) {
-    sctl::Long N = A.Dim() / COORD_DIM;
-    SCTL_ASSERT(A.Dim() == COORD_DIM * N);
-    SCTL_ASSERT(B.Dim() == COORD_DIM * N);
-    if (AdotB.Dim() != N) AdotB.ReInit(N);
-    for (sctl::Long i = 0; i < N; i++) {
-      Real AdotB_ = 0;
-      for (sctl::Integer k = 0; k < COORD_DIM; k++) {
-        AdotB_ += A[k*N+i] * B[k*N+i];
-      }
-      AdotB[i] = AdotB_;
-    }
-  };
 
   sctl::Comm comm = sctl::Comm::Self();
-  sctl::Vector<Real> X_surf, X_trg;
-  { // Set X_surf, X_trg
+  sctl::Vector<Real> X_surf;
+  { // Set X_surf
     sctl::Vector<Real> XX;
     biest::SurfaceOp<Real>::CompleteVecField(XX, true, half_period, NFP, surf_Nt, surf_Np, sctl::Vector<Real>(X), (half_period?-sctl::const_pi<Real>()/(NFP*surf_Nt*2):0));
     biest::SurfaceOp<Real>::Resample(X_surf, NFP*(half_period?2:1)*(surf_Nt+1), surf_Np, XX, NFP*(half_period?2:1)*surf_Nt, surf_Np);
-
-    sctl::Vector<Real> X_surf_shifted, X_trg_;
-    const sctl::Long trg_Nt_ = (half_period?2:1)*trg_Nt;
-    biest::SurfaceOp<Real>::RotateToroidal(X_surf_shifted, X_surf, NFP*(half_period?2:1)*(surf_Nt+1), surf_Np, (half_period?sctl::const_pi<Real>()/(NFP*trg_Nt*2):0));
-    biest::SurfaceOp<Real>::Resample(X_trg_, NFP*trg_Nt_, trg_Np, X_surf_shifted, NFP*(half_period?2:1)*(surf_Nt+1), surf_Np);
-    X_trg.ReInit(COORD_DIM*trg_Nt_*trg_Np);
-    for (sctl::Integer k = 0; k < COORD_DIM; k++) {
-      for (sctl::Long i = 0; i < trg_Nt_*trg_Np; i++) {
-        X_trg[k*trg_Nt_*trg_Np+i] = X_trg_[k*NFP*trg_Nt_*trg_Np+i];
-      }
-    }
   }
 
   sctl::Vector<sctl::Vector<Real>> source0, density0;
@@ -475,8 +452,50 @@ template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCa
     add_source_loop(source1, density1, {X[0],X[1],X[2]}, {Xn[0],Xn[1],Xn[2]}, R);
   }
 
-  const auto Bint_ = eval_BiotSavart(X_trg, source0, density0);
-  const auto Bext_ = eval_BiotSavart(X_trg, source1, density1);
+  const auto Bint_ = eval_BiotSavart(sctl::Vector<Real>(X_trg), source0, density0);
+  const auto Bext_ = eval_BiotSavart(sctl::Vector<Real>(X_trg), source1, density1);
+
+  const sctl::Long Ntrg = X_trg.size() / COORD_DIM;
+  std::vector<Real> Bint(3*Ntrg);
+  std::vector<Real> Bext(3*Ntrg);
+  for (sctl::Integer k = 0; k < COORD_DIM; k++) { // Set Bint, Bext
+    for (sctl::Long i = 0; i < Ntrg; i++) {
+      Bint[k*Ntrg+i] = Bint_[k*Ntrg+i];
+      Bext[k*Ntrg+i] = Bext_[k*Ntrg+i];
+    }
+  }
+
+  if (0) { // Visualization
+    WriteVTK_("loop0", source0, density0);
+    WriteVTK_("loop1", source1, density1);
+  }
+
+  SCTL_UNUSED(WriteVTK_);
+
+  return std::make_tuple(std::move(Bext), std::move(Bint));
+}
+
+template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCasingTestData<Real>::BFieldData(const sctl::Integer NFP, const bool half_period, const sctl::Long surf_Nt, const sctl::Long surf_Np, const std::vector<Real>& X, const sctl::Long trg_Nt, const sctl::Long trg_Np) {
+  std::vector<Real> X_trg;
+  { // Set X_trg
+    sctl::Vector<Real> XX, X_surf;
+    biest::SurfaceOp<Real>::CompleteVecField(XX, true, half_period, NFP, surf_Nt, surf_Np, sctl::Vector<Real>(X), (half_period?-sctl::const_pi<Real>()/(NFP*surf_Nt*2):0));
+    biest::SurfaceOp<Real>::Resample(X_surf, NFP*(half_period?2:1)*(surf_Nt+1), surf_Np, XX, NFP*(half_period?2:1)*surf_Nt, surf_Np);
+
+    sctl::Vector<Real> X_surf_shifted, X_trg_;
+    const sctl::Long trg_Nt_ = (half_period?2:1)*trg_Nt;
+    biest::SurfaceOp<Real>::RotateToroidal(X_surf_shifted, X_surf, NFP*(half_period?2:1)*(surf_Nt+1), surf_Np, (half_period?sctl::const_pi<Real>()/(NFP*trg_Nt*2):0));
+    biest::SurfaceOp<Real>::Resample(X_trg_, NFP*trg_Nt_, trg_Np, X_surf_shifted, NFP*(half_period?2:1)*(surf_Nt+1), surf_Np);
+    X_trg.resize(COORD_DIM*trg_Nt_*trg_Np);
+    for (sctl::Integer k = 0; k < COORD_DIM; k++) {
+      for (sctl::Long i = 0; i < trg_Nt_*trg_Np; i++) {
+        X_trg[k*trg_Nt_*trg_Np+i] = X_trg_[k*NFP*trg_Nt_*trg_Np+i];
+      }
+    }
+  }
+
+  std::vector<Real> Bint_, Bext_;
+  std::tie(Bext_, Bint_) = BFieldData(NFP, half_period, surf_Nt, surf_Np, X, X_trg);
 
   std::vector<Real> Bint(COORD_DIM*trg_Nt*trg_Np);
   std::vector<Real> Bext(COORD_DIM*trg_Nt*trg_Np);
@@ -490,12 +509,7 @@ template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCa
 
   if (0) { // Visualization
     biest::WriteVTK("B", NFP, half_period, surf_Nt, surf_Np, sctl::Vector<Real>(X), trg_Nt, trg_Np, sctl::Vector<Real>(Bext)+sctl::Vector<Real>(Bint));
-    WriteVTK_("loop0", source0, density0);
-    WriteVTK_("loop1", source1, density1);
   }
-
-  SCTL_UNUSED(WriteVTK_);
-  SCTL_UNUSED(DotProd);
 
   return std::make_tuple(std::move(Bext), std::move(Bint));
 }
