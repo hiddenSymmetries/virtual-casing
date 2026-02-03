@@ -78,6 +78,9 @@ template <class Real> class VirtualCasing {
      * applying the virtual-casing principle:
      * Bext = B/2 + gradG[B . n] + BiotSavart[n x B]
      *
+     * Here, Bext is the magnetic field due to currents in the exterior of the surface,
+     * and Bint is the magnetic field due to currents in the interior of the surface.
+     *
      * @param[in] B the total magnetic field on the surface due to all currents.
      * B = {Bx11, Bx12, ..., Bx1Np, Bx21, Bx22, ... , BxNtNp, By11, ... , Bz11, ...},
      * where Nt and Np are the number of discretizations in toroidal and
@@ -93,6 +96,9 @@ template <class Real> class VirtualCasing {
      * Recover the Bext component from the total field B = Bext + Bint by
      * applying the virtual-casing principle (for off-surface target points):
      * Bext = gradG[B . n] + BiotSavart[n x B]
+     *
+     * Here, Bext is the magnetic field due to currents in the exterior of the surface,
+     * and Bint is the magnetic field due to currents in the interior of the surface.
      *
      * @param[in] B the total magnetic field on the surface due to all currents.
      * B = {Bx11, Bx12, ..., Bx1Np, Bx21, Bx22, ... , BxNtNp, By11, ... , Bz11, ...},
@@ -129,6 +135,49 @@ template <class Real> class VirtualCasing {
     std::vector<Real> ComputeGradBext(const std::vector<Real>& B) const;
 
     /**
+     * Recover the Bint component from the total field B = Bext + Bint by
+     * applying the virtual-casing principle:
+     * Bint = B/2 - gradG[B . n] - BiotSavart[n x B]
+     *
+     * Here, Bext is the magnetic field due to currents in the exterior of the surface,
+     * and Bint is the magnetic field due to currents in the interior of the surface.
+     *
+     * @param[in] B the total magnetic field on the surface due to all currents.
+     * B = {Bx11, Bx12, ..., Bx1Np, Bx21, Bx22, ... , BxNtNp, By11, ... , Bz11, ...},
+     * where Nt and Np are the number of discretizations in toroidal and
+     * poloidal directions.
+     *
+     * @return the component of magnetic field on the surface due to
+     * currents in the interior of the surface.
+     */
+    std::vector<Real> ComputeBint(const std::vector<Real>& B) const;
+
+    /**
+     * Recover the Bint component from the total field B = Bext + Bint (for off-surface target points).
+     *
+     * Here, Bext is the magnetic field due to currents in the exterior of the surface,
+     * and Bint is the magnetic field due to currents in the interior of the surface.
+     *
+     * @param[in] B the total magnetic field on the surface due to all currents.
+     * B = {Bx11, Bx12, ..., Bx1Np, Bx21, Bx22, ... , BxNtNp, By11, ... , Bz11, ...},
+     * where Nt and Np are the number of discretizations in toroidal and
+     * poloidal directions.
+     *
+     * @param[in] Xt the vector of coordinates for the off-surface evaluation
+     * points in the order {x1, x2, ..., xn, y1, ..., z1, ..., Zn}.
+     *
+     * @param[in] max_Nt restrict upsampling to max_Nt modes (in a field-period) in toroidal direction.
+     *
+     * @param[in] max_Np restrict upsampling to max_Np modes in poloidal direction.
+     *
+     * @return the component of magnetic field at the evaluation points due to
+     * currents in the interior of the surface.
+     */
+    std::vector<Real> ComputeBintOffSurf(const std::vector<Real>& B, const std::vector<Real>& Xt, const sctl::Long max_Nt=-1, const sctl::Long max_Np=-1) const;
+
+    //std::vector<Real> ComputeGradBint(const std::vector<Real>& B) const; // TODO: requires Hedgehog quadrature normal to be flipped
+
+    /**
      * Returns the surface normal vectors.
      *
      * @param[in] NFP number of toroidal field periods. The result will be on one field period.
@@ -145,6 +194,13 @@ template <class Real> class VirtualCasing {
     std::vector<Real> GetNormal(const sctl::Integer NFP, const bool half_period, const sctl::Long Nt, const sctl::Long Np) const;
 
   private:
+
+    std::vector<Real> ComputeB(const std::vector<Real>& B, bool ext) const;
+
+    std::vector<Real> ComputeBOffSurf(const std::vector<Real>& B, const std::vector<Real>& Xt, const sctl::Long max_Nt, const sctl::Long max_Np, bool ext) const;
+
+    std::vector<Real> ComputeGradB(const std::vector<Real>& B, bool ext) const;
+
 
     static void DotProd(sctl::Vector<Real>& AdotB, const sctl::Vector<Real>& A, const sctl::Vector<Real>& B);
 

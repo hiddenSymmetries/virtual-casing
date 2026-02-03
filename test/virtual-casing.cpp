@@ -30,44 +30,46 @@ template <class Real> void test(int digits, int NFP, bool half_period, long Nt, 
   virtual_casing.Setup(digits, NFP, half_period, Nt, Np, X, src_Nt, src_Np, trg_Nt, trg_Np);
 
   // Get off-surface target points
-  std::vector<Real> Xtrg_offsurf, Xn = virtual_casing.GetNormal(NFP, half_period, Nt, Np);
-  for (long i = 0; i < (long)X.size(); i++) Xtrg_offsurf.push_back(X[i] - 0.08*Xn[i]);
+  std::vector<Real> Xtrg_offsurf_int, Xtrg_offsurf_ext, Xn = virtual_casing.GetNormal(NFP, half_period, Nt, Np);
+  for (long i = 0; i < (long)X.size(); i++) Xtrg_offsurf_int.push_back(X[i] - 0.08*Xn[i]);
+  for (long i = 0; i < (long)X.size(); i++) Xtrg_offsurf_ext.push_back(X[i] + 0.08*Xn[i]);
 
   // Generate B fields for testing virtual-casing principle
-  std::vector<Real> B, Bext;
-  std::vector<Real> GradB, GradBext;
-  std::vector<Real> B_offsurf, Bext_offsurf;
-  { // Set B, Bext
+  std::vector<Real> B, Bext, Bint;
+  std::vector<Real> GradB, GradBext, GradBint;
+  std::vector<Real> Bext_offsurf, Bint_offsurf;
+  { // Set B, Bext, Bint
     std::vector<Real> Bint_, Bext_;
-    std::tie(Bext, std::ignore) = VirtualCasingTestData<Real>::BFieldData(NFP, half_period, Nt, Np, X, trg_Nt, trg_Np);
+    std::tie(Bext, Bint) = VirtualCasingTestData<Real>::BFieldData(NFP, half_period, Nt, Np, X, trg_Nt, trg_Np);
     std::tie(Bext_, Bint_) = VirtualCasingTestData<Real>::BFieldData(NFP, half_period, Nt, Np, X, src_Nt, src_Np);
     const auto B_ = sctl::Vector<Real>(Bint_) + sctl::Vector<Real>(Bext_);
     B.assign(B_.begin(), B_.end());
   }
   { // Set GradB, GradBext
-    std::vector<Real> GradBint_;
-    std::tie(GradBext, GradBint_) = VirtualCasingTestData<Real>::GradBFieldData(NFP, half_period, Nt, Np, X, trg_Nt, trg_Np);
-    const auto GradB_ = sctl::Vector<Real>(GradBint_) + sctl::Vector<Real>(GradBext);
+    std::tie(GradBext, GradBint) = VirtualCasingTestData<Real>::GradBFieldData(NFP, half_period, Nt, Np, X, trg_Nt, trg_Np);
+    const auto GradB_ = sctl::Vector<Real>(GradBint) + sctl::Vector<Real>(GradBext);
     GradB.assign(GradB_.begin(), GradB_.end());
   }
-  { // Set B_offsurf, Bext_offsurf
-    std::vector<Real> Bint_offsurf_;
-    std::tie(Bext_offsurf, Bint_offsurf_) = VirtualCasingTestData<Real>::BFieldDataOffSurf(NFP, half_period, Nt, Np, X, Xtrg_offsurf);
-    const auto B_offsurf_ = sctl::Vector<Real>(Bint_offsurf_) + sctl::Vector<Real>(Bext_offsurf);
-    B_offsurf.assign(B_offsurf_.begin(), B_offsurf_.end());
+  { // Set Bint_offsurf, Bext_offsurf
+    std::tie(Bext_offsurf, std::ignore) = VirtualCasingTestData<Real>::BFieldDataOffSurf(NFP, half_period, Nt, Np, X, Xtrg_offsurf_int);
+    std::tie(std::ignore, Bint_offsurf) = VirtualCasingTestData<Real>::BFieldDataOffSurf(NFP, half_period, Nt, Np, X, Xtrg_offsurf_ext);
   }
 
   // Compute Bext field
   auto Bext_ = virtual_casing.ComputeBext(B);
+  auto Bint_ = virtual_casing.ComputeBint(B);
   print_relative_err("Bext", B, Bext, Bext_);
+  print_relative_err("Bint", B, Bint, Bint_);
 
   // Compute GradBext field
   auto GradBext_ = virtual_casing.ComputeGradBext(B);
   print_relative_err("GradBext", GradB, GradBext, GradBext_);
 
   // Compute off-surface error
-  const auto Bext_offsurf_ = virtual_casing.ComputeBextOffSurf(B, Xtrg_offsurf, (half_period?1:2)*800, 800); // max_Nt, max_Np = 800
-  print_relative_err("Bext_offsurf", B_offsurf, Bext_offsurf, Bext_offsurf_);
+  const auto Bext_offsurf_ = virtual_casing.ComputeBextOffSurf(B, Xtrg_offsurf_int, (half_period?1:2)*800, 800); // max_Nt, max_Np = 800
+  const auto Bint_offsurf_ = virtual_casing.ComputeBintOffSurf(B, Xtrg_offsurf_ext, (half_period?1:2)*800, 800); // max_Nt, max_Np = 800
+  print_relative_err("Bext_offsurf", B, Bext_offsurf, Bext_offsurf_);
+  print_relative_err("Bint_offsurf", B, Bint_offsurf, Bint_offsurf_);
   std::cout<<'\n';
 
   if (0) { // Visualize off-surface evaluation error
