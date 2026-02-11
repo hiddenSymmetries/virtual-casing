@@ -2,9 +2,11 @@ import os
 import re
 import subprocess
 import sys
+import shutil
 
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
+from setuptools.command.build_py import build_py
 
 # Convert distutils Windows platform specifiers to CMake -A arguments
 PLAT_TO_CMAKE = {
@@ -25,6 +27,40 @@ class CMakeExtension(Extension):
 
 
 class CMakeBuild(build_ext):
+    def run(self):
+        # First, run the normal build
+        super().run()
+        # Then generate stubs
+        self.generate_stubs()
+
+    def generate_stubs(self):
+        """Generate .pyi stub files using pybind11-stubgen."""
+        # Get the directory where the extension was built
+        ext = self.extensions[0]
+        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        
+        # Add the extension directory to the path so stubgen can import it
+        env = os.environ.copy()
+        env["PYTHONPATH"] = extdir + os.pathsep + env.get("PYTHONPATH", "")
+        
+        # Output stubs to the source directory for packaging
+        stubs_output_dir = os.path.join(os.path.dirname(__file__), "virtual_casing-stubs")
+        
+        try:
+            subprocess.check_call(
+                [
+                    sys.executable, "-m", "pybind11_stubgen",
+                    "virtual_casing",
+                    "-o", os.path.dirname(stubs_output_dir),
+                ],
+                env=env,
+            )
+            print(f"Generated stubs in {stubs_output_dir}")
+        except subprocess.CalledProcessError as e:
+            print(f"Warning: Failed to generate stubs: {e}")
+        except FileNotFoundError:
+            print("Warning: pybind11-stubgen not found. Stubs not generated.")
+
     def build_extension(self, ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
 
@@ -128,7 +164,9 @@ setup(
     long_description="",
     ext_modules=[CMakeExtension("virtual_casing")],
     cmdclass={"build_ext": CMakeBuild},
+    packages=["virtual_casing-stubs"],
+    package_data={"virtual_casing-stubs": ["*.pyi", "**/*.pyi", "py.typed"]},
     zip_safe=False,
-    #extras_require={"test": ["pytest>=6.0"]},
+    extras_require={"dev": ["pybind11-stubgen>=2.5"]},
     python_requires=">=3.7",
 )

@@ -5,4 +5,6 @@ graft extern/BIEST/include
 graft extern/pybind11/include
 graft extern/pybind11/tools
 graft cmake
+graft virtual_casing-stubs
 global-include CMakeLists.txt *.cmake
+global-include *.pyi py.typed
