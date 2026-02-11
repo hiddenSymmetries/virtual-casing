@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=61",
     "wheel",
     "ninja",
     "cmake>=3.16",
@@ -12,17 +12,23 @@ build-backend = "setuptools.build_meta"
 name = "virtual_casing"
 version = "0.1.0"
 description = "Python Wrapper for Virtual Casing"
+readme = "README.md"
+license = {file = "LICENSE"}
 authors = [
-    {name = "Dhairya Malhotra, Manas Rachh, Bharat Medasani", email = "mbkumar@gmail.com"}
+    {name = "Dhairya Malhotra"},
+    {name = "Manas Rachh"},
+    {name = "Bharat Medasani", email = "mbkumar@gmail.com"}
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "Operating System :: OS Independent",
+]
 
 [project.optional-dependencies]
-dev = ["pybind11-stubgen>=2.5"]
+test = ["pytest>=6.0"]
+dev = ["pybind11-stubgen>=2.5", "pytest"]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["virtual_casing-stubs*"]
-
-[tool.setuptools.package-data]
-"virtual_casing-stubs" = ["*.pyi", "**/*.pyi"]
+[project.urls]
+Repository = "https://github.com/hiddenSymmetries/virtual-casing"
