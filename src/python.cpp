@@ -12,11 +12,11 @@ PYBIND11_MODULE(virtual_casing, m) {
 
     py::class_<sctl::Vector<double>>(m, "SCTLDoubleVector")
          .def(py::init<>())
-         .def(py::init<const std::vector<double> & >());
+         .def(py::init<const std::vector<double> & >(), py::arg("data"));
 
     py::class_<sctl::Vector<int>>(m, "SCTLIntVector")
         .def(py::init<>())
-        .def(py::init<const std::vector<int> & >());
+        .def(py::init<const std::vector<int> & >(), py::arg("data"));
 
     py::enum_<biest::SurfType>(m, "SurfType",
         "Prebuilt surface geometry types for testing.")
@@ -86,8 +86,13 @@ PYBIND11_MODULE(virtual_casing, m) {
             The resolution parameters for the surface shape (Nt, Np), input magnetic
             field (src_Nt, src_Np), and output external field (trg_Nt, trg_Np) do
             not need to be related to each other in any particular way.
-            )pbdoc")
+            )pbdoc",
+            py::arg("digits"), py::arg("NFP"), py::arg("half_period"),
+            py::arg("Nt"), py::arg("Np"), py::arg("X"),
+            py::arg("src_Nt"), py::arg("src_Np"),
+            py::arg("trg_Nt") = -1, py::arg("trg_Np") = -1)
         .def("compute_external_B", &VirtualCasing<double>::ComputeBext,
+            py::arg("B_total"),
             R"pbdoc(
             Compute the magnetic field due to currents external to the surface.
 
@@ -112,6 +117,7 @@ PYBIND11_MODULE(virtual_casing, m) {
                 the exterior of the surface.
             )pbdoc")
         .def("compute_external_B_offsurf", &VirtualCasing<double>::ComputeBextOffSurf,
+            py::arg("B_total"), py::arg("Xt"), py::arg("max_Nt") = -1, py::arg("max_Np") = -1,
             R"pbdoc(
             Compute the magnetic field due to currents external to the surface at off-surface points.
 
@@ -140,6 +146,7 @@ PYBIND11_MODULE(virtual_casing, m) {
                 currents in the exterior of the surface.
             )pbdoc")
         .def("compute_external_gradB", &VirtualCasing<double>::ComputeGradBext,
+            py::arg("B_total"),
             R"pbdoc(
             Compute the gradient of the magnetic field due to currents external to the surface.
 
@@ -159,6 +166,7 @@ PYBIND11_MODULE(virtual_casing, m) {
                 currents in the exterior of the surface.
             )pbdoc")
         .def("compute_internal_B", &VirtualCasing<double>::ComputeBint,
+            py::arg("B_total"),
             R"pbdoc(
             Compute the magnetic field due to currents internal to the surface.
 
@@ -181,6 +189,7 @@ PYBIND11_MODULE(virtual_casing, m) {
                 the interior of the surface.
             )pbdoc")
         .def("compute_internal_B_offsurf", &VirtualCasing<double>::ComputeBintOffSurf,
+            py::arg("B_total"), py::arg("Xt"), py::arg("max_Nt") = -1, py::arg("max_Np") = -1,
             R"pbdoc(
             Compute the magnetic field due to currents internal to the surface at off-surface points.
 
@@ -212,6 +221,8 @@ PYBIND11_MODULE(virtual_casing, m) {
         "Generate test data for class VirtualCasing.")
         .def(py::init<>())
         .def_static("surface_coordinates", &VirtualCasingTestData<double>::SurfaceCoordinates,
+            py::arg("NFP"), py::arg("half_period"), py::arg("Nt"), py::arg("Np"),
+            py::arg("surf_type") = biest::SurfType::AxisymNarrow,
             R"pbdoc(
             Generate nodal coordinates for toroidal surfaces.
 
@@ -239,6 +250,8 @@ PYBIND11_MODULE(virtual_casing, m) {
                 correspond to the surface in the toroidal angle interval [0, 2*pi/NFP).
             )pbdoc")
         .def_static("magnetic_field_data", &VirtualCasingTestData<double>::BFieldData,
+            py::arg("NFP"), py::arg("half_period"), py::arg("Nt"), py::arg("Np"),
+            py::arg("X"), py::arg("trg_Nt"), py::arg("trg_Np"),
             R"pbdoc(
             Generate B field data for testing with class VirtualCasing.
 
@@ -267,6 +280,8 @@ PYBIND11_MODULE(virtual_casing, m) {
                 and an external current loop respectively.
             )pbdoc")
         .def_static("magnetic_field_grad_data", &VirtualCasingTestData<double>::GradBFieldData,
+            py::arg("NFP"), py::arg("half_period"), py::arg("Nt"), py::arg("Np"),
+            py::arg("X"), py::arg("trg_Nt"), py::arg("trg_Np"),
             R"pbdoc(
             Generate gradient of B field data for testing with class VirtualCasing.
 

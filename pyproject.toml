@@ -13,7 +13,8 @@ name = "virtual_casing"
 version = "0.1.0"
 description = "Python Wrapper for Virtual Casing"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     {name = "Dhairya Malhotra"},
     {name = "Manas Rachh"},
