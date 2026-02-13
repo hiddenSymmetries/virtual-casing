@@ -21,18 +21,21 @@ template <class Real> class VirtualCasing {
      *
      * @param[in] half_period whether the surface and data are defined on half field period.
      *
-     * @param[in] Nt surface discretization order in toroidal direction (in one field period).
+     * @param[in] Nt surface discretization order in toroidal direction
+     * (in one field period or half field period when half_period=true).
      *
      * @param[in] Np surface discretization order in poloidal direction.
      *
      * @param[in] X the surface coordinates in the order {x11, x12, ..., x1Np,
      * x21, x22, ... , xNtNp, y11, ... , z11, ...}.
      *
-     * @param[in] src_Nt input B-field discretization order in toroidal direction (in one field period).
+     * @param[in] src_Nt input B-field discretization order in toroidal direction
+     * (in one field period or half field period when half_period=true).
      *
      * @param[in] src_Np input B-field discretization order in poloidal direction.
      *
-     * @param[in] trg_Nt output Bext-field discretization order in toroidal direction (in one field period).
+     * @param[in] trg_Nt output Bext-field discretization order in toroidal direction
+     * (in one field period or half field period when half_period=true).
      *
      * @param[in] trg_Np output Bext-field discretization order in poloidal direction.
      *
@@ -48,12 +51,13 @@ template <class Real> class VirtualCasing {
      * is no point at the symmetry plane phi = 1 / NFP.
      *
      * If you do wish to exploit stellarator symmetry, set half_period
-     * to true. In this case the toroidal grids are each shifted by
+     * to true. The grid spacing is 1 / (2 * NFP * Nt).
+     * In this case the toroidal grids are each shifted by
      * half a grid point, so there is no grid point at phi = 0. The
-     * phi grid for the surface shape has points at 0.5 / (NFP * Nt),
-     * 1.5 / (NFP * Nt), ..., (Nt - 0.5) / (NFP * Nt). The phi grid
-     * for the output B_external has grid points at 0.5 / (NFP *
-     * trg_Nt), 1.5 / (NFP * trg_Nt), ..., (trg_Nt - 0.5) / (NFP *
+     * phi grid for the surface shape has points at 0.5 / (2 * NFP * Nt),
+     * 1.5 / (2 * NFP * Nt), ..., (Nt - 0.5) / (2 * NFP * Nt). The phi grid
+     * for the output B_external has grid points at 0.5 / (2 * NFP *
+     * trg_Nt), 1.5 / (2 * NFP * trg_Nt), ..., (trg_Nt - 0.5) / (2 * NFP *
      * Nt), and similarly for the input B field with trg -> src.
      *
      * The rationale for these conventions is that in both the
@@ -180,11 +184,13 @@ template <class Real> class VirtualCasing {
     /**
      * Returns the surface normal vectors.
      *
-     * @param[in] NFP number of toroidal field periods. The result will be on one field period.
+     * @param[in] NFP number of toroidal field periods. The result will be on
+     * one field period (or half period when half_period=true).
      *
      * @param[in] half_period whether the result should be on half field period.
      *
-     * @param[in] Nt surface discretization order in toroidal direction (in one field period).
+     * @param[in] Nt surface discretization order in toroidal direction
+     * (in one field period or half field period when half_period=true).
      *
      * @param[in] Np surface discretization order in poloidal direction.
      *
@@ -237,7 +243,8 @@ template <class Real> class VirtualCasingTestData {
      *
      * @param[in] half_period whether the returned surface coordinates should be on half field period.
      *
-     * @param[in] Nt surface discretization order in toroidal direction (in one field period).
+     * @param[in] Nt surface discretization order in toroidal direction
+     * (in one field period or half field period when half_period=true).
      *
      * @param[in] Np surface discretization order in poloidal direction.
      *
@@ -259,14 +266,16 @@ template <class Real> class VirtualCasingTestData {
      *
      * @param[in] half_period whether the result should be on half field period.
      *
-     * @param[in] Nt surface discretization order in toroidal direction (in one field period).
+     * @param[in] Nt surface discretization order in toroidal direction
+     * (in one field period or half field period when half_period=true).
      *
      * @param[in] Np surface discretization order in poloidal direction.
      *
      * @param[in] X the surface coordinates in the order {x11, x12, ..., x1Np,
      * x21, x22, ... , xNtNp, y11, ... , z11, ...}.
      *
-     * @param[in] trg_Nt output B-field discretization order in toroidal direction (in one field period).
+     * @param[in] trg_Nt output B-field discretization order in toroidal direction
+     * (in one field period or half field period when half_period=true).
      *
      * @param[in] trg_Np output B-field discretization order in poloidal direction.
      *
@@ -282,7 +291,8 @@ template <class Real> class VirtualCasingTestData {
      *
      * @param[in] half_period whether the result should be on half field period.
      *
-     * @param[in] Nt surface discretization order in toroidal direction (in one field period).
+     * @param[in] Nt surface discretization order in toroidal direction
+     * (in one field period or half field period when half_period=true).
      *
      * @param[in] Np surface discretization order in poloidal direction.
      *
@@ -304,14 +314,16 @@ template <class Real> class VirtualCasingTestData {
      *
      * @param[in] half_period whether the result should be on half field period.
      *
-     * @param[in] Nt surface discretization order in toroidal direction (in one field period).
+     * @param[in] Nt surface discretization order in toroidal direction
+     * (in one field period or half field period when half_period=true).
      *
      * @param[in] Np surface discretization order in poloidal direction.
      *
      * @param[in] X the surface coordinates in the order {x11, x12, ..., x1Np,
      * x21, x22, ... , xNtNp, y11, ... , z11, ...}.
      *
-     * @param[in] trg_Nt output B-field discretization order in toroidal direction (in one field period).
+     * @param[in] trg_Nt output B-field discretization order in toroidal direction
+     * (in one field period or half field period when half_period=true).
      *
      * @param[in] trg_Np output B-field discretization order in poloidal direction.
      *
