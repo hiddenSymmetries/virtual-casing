@@ -1,4 +1,78 @@
 
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
+#include <type_traits>
+
+namespace {
+
+struct VcDumpConfig {
+  const char* dir = nullptr;
+  const char* prefix = nullptr;
+  bool enabled = false;
+};
+
+inline VcDumpConfig vc_dump_config() {
+  static VcDumpConfig cfg = []() {
+    VcDumpConfig c;
+    c.dir = std::getenv("VC_DUMP_DIR");
+    if (c.dir && c.dir[0] != '\0') {
+      c.enabled = true;
+      c.prefix = std::getenv("VC_DUMP_PREFIX");
+      if (!c.prefix || c.prefix[0] == '\0') c.prefix = "vc";
+    }
+    return c;
+  }();
+  return cfg;
+}
+
+inline void vc_dump_write_meta(const std::string& meta_path, const std::string& dtype, const std::vector<long>& shape) {
+  std::ofstream meta(meta_path);
+  if (!meta.good()) return;
+  meta << "{\n";
+  meta << "  \"dtype\": \"" << dtype << "\",\n";
+  meta << "  \"shape\": [";
+  for (size_t i = 0; i < shape.size(); i++) {
+    if (i) meta << ", ";
+    meta << shape[i];
+  }
+  meta << "]\n";
+  meta << "}\n";
+}
+
+template <class Real>
+inline void vc_dump_raw(const std::string& name, const Real* data, size_t count, const std::vector<long>& shape) {
+  auto cfg = vc_dump_config();
+  if (!cfg.enabled) return;
+
+  std::ostringstream base;
+  base << cfg.dir << "/" << cfg.prefix << "_" << name;
+  const std::string bin_path = base.str() + ".bin";
+  const std::string meta_path = base.str() + ".json";
+
+  std::ofstream bin(bin_path, std::ios::binary);
+  if (!bin.good()) return;
+  bin.write(reinterpret_cast<const char*>(data), static_cast<std::streamsize>(count * sizeof(Real)));
+  bin.close();
+
+  const std::string dtype = std::is_same<Real, float>::value ? "float32" : "float64";
+  vc_dump_write_meta(meta_path, dtype, shape);
+}
+
+template <class Real>
+inline void vc_dump_vec(const std::string& name, const sctl::Vector<Real>& v, const std::vector<long>& shape) {
+  if (!v.Dim()) return;
+  vc_dump_raw(name, v.begin(), static_cast<size_t>(v.Dim()), shape);
+}
+
+template <class Real>
+inline void vc_dump_stdvec(const std::string& name, const std::vector<Real>& v, const std::vector<long>& shape) {
+  if (v.empty()) return;
+  vc_dump_raw(name, v.data(), v.size(), shape);
+}
+
+}
+
 template <class Real> VirtualCasing<Real>::VirtualCasing() : comm_(sctl::Comm::Self()), BiotSavartFxU(comm_), LaplaceFxdU(comm_), BiotSavartFxdU(comm_), LaplaceFxd2U(comm_), Svec(1), NFP_(0), digits_(10), dosetup(true), dosetup_grad(true) {
 }
 
@@ -24,6 +98,11 @@ template <class Real> void VirtualCasing<Real>::Setup(const sctl::Integer digits
   trg_Nt_ = trg_Nt;
   trg_Np_ = trg_Np;
   digits_ = digits;
+
+  { // Optional debug dump
+    vc_dump_stdvec<Real>("setup_X", X, {COORD_DIM, surf_Nt, surf_Np});
+    vc_dump_vec<Real>("setup_surface_coord", Svec[0].Coord(), {COORD_DIM, Svec[0].NTor(), Svec[0].NPol()});
+  }
 }
 
 
@@ -72,17 +151,29 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeB(const std:
     SurfOp.SurfNormalAreaElem(&normal, nullptr, dX, &XX);
 
     dosetup = false;
+
+    { // Optional debug dump (setup)
+      vc_dump_vec<Real>("computeB_quad_coord", XX, {COORD_DIM, quad_Nt_, quad_Np_});
+      vc_dump_vec<Real>("computeB_dX", dX, {COORD_DIM * 2, quad_Nt_, quad_Np_});
+      vc_dump_vec<Real>("computeB_normal", normal, {COORD_DIM, quad_Nt_, quad_Np_});
+    }
   }
 
   sctl::Vector<Real> B0_, B;
   biest::SurfaceOp<Real>::CompleteVecField(B0_, false, half_period_, NFP_, src_Nt_, src_Np_, sctl::Vector<Real>(B0), (half_period_?sctl::const_pi<Real>()*(1/(Real)(NFP_*trg_Nt_*2)-1/(Real)(NFP_*src_Nt_*2)):0));
   biest::SurfaceOp<Real>::Resample(B, quad_Nt_, quad_Np_, B0_, NFP_*(half_period_?2:1)*src_Nt_, src_Np_);
 
+  { // Optional debug dump (inputs)
+    vc_dump_vec<Real>("computeB_B0_complete", B0_, {COORD_DIM, NFP_*(half_period_?2:1)*src_Nt_, src_Np_});
+    vc_dump_vec<Real>("computeB_B_resampled", B, {COORD_DIM, quad_Nt_, quad_Np_});
+  }
+
   std::vector<Real> Bvc;
   Real sign = (ext ? 1 : -1); // flip sign for internal currents
   { // Bvc = BiotSavartFxU.Eval(normal x B) * sign;
     sctl::Vector<Real> J;
     CrossProd(J, normal, B);
+    vc_dump_vec<Real>("computeB_J", J, {COORD_DIM, quad_Nt_, quad_Np_});
     if (0) {
       sctl::Vector<Real> Bvc_;
       BiotSavartFxU.Eval(Bvc_, -J * sign);
@@ -96,6 +187,8 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeB(const std:
       LaplaceFxdU.Eval(gradG_J0, sctl::Vector<Real>(J.Dim()/3, J.begin() + (J.Dim()/3)*0, false));
       LaplaceFxdU.Eval(gradG_J1, sctl::Vector<Real>(J.Dim()/3, J.begin() + (J.Dim()/3)*1, false));
       LaplaceFxdU.Eval(gradG_J2, sctl::Vector<Real>(J.Dim()/3, J.begin() + (J.Dim()/3)*2, false));
+
+      vc_dump_vec<Real>("computeB_gradG_J", gradG_J, {COORD_DIM, COORD_DIM, trg_Nt_, trg_Np_});
 
       if ((sctl::Long)Bvc.size() != N * COORD_DIM) Bvc.resize(N * COORD_DIM);
       for (sctl::Long i = 0; i < N; i++) {
@@ -115,6 +208,9 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeB(const std:
     sctl::Vector<Real> BdotN, Bvc_;
     DotProd(BdotN, B, normal);
     LaplaceFxdU.Eval(Bvc_, BdotN);
+    vc_dump_vec<Real>("computeB_BdotN", BdotN, {quad_Nt_, quad_Np_});
+    vc_dump_vec<Real>("computeB_gradG_BdotN", Bvc_, {COORD_DIM, trg_Nt_, trg_Np_});
+    vc_dump_vec<Real>("computeB_B_on_trg", B_, {COORD_DIM, NFP_*trg_Nt__, trg_Np_});
     for (sctl::Long k = 0; k < COORD_DIM; k++) {
       for (sctl::Long i = 0; i < trg_Nt_; i++) {
         for (sctl::Long j = 0; j < trg_Np_; j++) {
@@ -123,6 +219,7 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeB(const std:
       }
     }
   }
+  vc_dump_stdvec<Real>("computeB_Bvc", Bvc, {COORD_DIM, trg_Nt_, trg_Np_});
   return Bvc;
 }
 
@@ -146,9 +243,19 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBOffSurf(con
   biest::SurfaceOp<Real>::CompleteVecField(B0_, false, half_period_, NFP_, src_Nt_, src_Np_, sctl::Vector<Real>(B0), (half_period_?sctl::const_pi<Real>()*(1/(Real)(NFP_*trg_Nt_*2)-1/(Real)(NFP_*src_Nt_*2)):0));
   biest::SurfaceOp<Real>::Resample(B, quad_Nt_, quad_Np_, B0_, NFP_*(half_period_?2:1)*src_Nt_, src_Np_);
 
+  { // Optional debug dump (inputs)
+    vc_dump_vec<Real>("computeBOff_quad_coord", XX, {COORD_DIM, quad_Nt_, quad_Np_});
+    vc_dump_vec<Real>("computeBOff_normal", normal, {COORD_DIM, quad_Nt_, quad_Np_});
+    vc_dump_vec<Real>("computeBOff_B0_complete", B0_, {COORD_DIM, NFP_*(half_period_?2:1)*src_Nt_, src_Np_});
+    vc_dump_vec<Real>("computeBOff_B_resampled", B, {COORD_DIM, quad_Nt_, quad_Np_});
+    vc_dump_stdvec<Real>("computeBOff_Xt", Xt, {COORD_DIM, (sctl::Long)(Xt.size()/COORD_DIM)});
+  }
+
   sctl::Vector<Real> BdotN, J;
   DotProd(BdotN, B, normal);
   CrossProd(J, normal, B);
+  vc_dump_vec<Real>("computeBOff_BdotN", BdotN, {quad_Nt_, quad_Np_});
+  vc_dump_vec<Real>("computeBOff_J", J, {COORD_DIM, quad_Nt_, quad_Np_});
 
   std::vector<Real> Bvc;
   Real sign = (ext ? 1 : -1); // flip sign for internal currents
@@ -182,6 +289,7 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBOffSurf(con
     ext_vacuum.Setup(digits_, 1, Svec[0].NTor(), Svec[0].NPol(), XX, quad_Nt_, quad_Np_);
     Bvc = ext_vacuum.EvalOffSurface(Xt, BdotN_, J_, (half_period_?2:1)*max_Nt, max_Np);
   }
+  vc_dump_stdvec<Real>("computeBOff_Bvc", Bvc, {COORD_DIM, (sctl::Long)(Xt.size()/COORD_DIM)});
   return Bvc;
 }
 
@@ -202,11 +310,22 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeGradB(const 
     SurfOp.SurfNormalAreaElem(&normal, nullptr, dX, &XX);
 
     dosetup_grad = false;
+
+    { // Optional debug dump (setup)
+      vc_dump_vec<Real>("computeGradB_quad_coord", XX, {COORD_DIM, grad_quad_Nt_, grad_quad_Np_});
+      vc_dump_vec<Real>("computeGradB_dX", dX, {COORD_DIM * 2, grad_quad_Nt_, grad_quad_Np_});
+      vc_dump_vec<Real>("computeGradB_normal", normal, {COORD_DIM, grad_quad_Nt_, grad_quad_Np_});
+    }
   }
 
   sctl::Vector<Real> B0_, B;
   biest::SurfaceOp<Real>::CompleteVecField(B0_, false, half_period_, NFP_, src_Nt_, src_Np_, sctl::Vector<Real>(B0), (half_period_?sctl::const_pi<Real>()*(1/(Real)(NFP_*trg_Nt_*2)-1/(Real)(NFP_*src_Nt_*2)):0));
   biest::SurfaceOp<Real>::Resample(B, grad_quad_Nt_, grad_quad_Np_, B0_, NFP_*(half_period_?2:1)*src_Nt_, src_Np_);
+
+  { // Optional debug dump (inputs)
+    vc_dump_vec<Real>("computeGradB_B0_complete", B0_, {COORD_DIM, NFP_*(half_period_?2:1)*src_Nt_, src_Np_});
+    vc_dump_vec<Real>("computeGradB_B_resampled", B, {COORD_DIM, grad_quad_Nt_, grad_quad_Np_});
+  }
 
   std::vector<Real> gradBvc;
   Real sign = (ext ? 1 : -1); // flip sign for internal currents
@@ -214,6 +333,7 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeGradB(const 
   { // gradBvc = gradBiotSavartFxU.Eval(normal x B) * sign;
     sctl::Vector<Real> J;
     CrossProd(J, normal, B);
+    vc_dump_vec<Real>("computeGradB_J", J, {COORD_DIM, grad_quad_Nt_, grad_quad_Np_});
     if (0) {
       sctl::Vector<Real> gradBvc_;
       BiotSavartFxdU.Eval(gradBvc_, -J * sign);
@@ -227,6 +347,8 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeGradB(const 
       LaplaceFxd2U.Eval(gradG_J0, sctl::Vector<Real>(J.Dim()/3, J.begin() + (J.Dim()/3)*0, false));
       LaplaceFxd2U.Eval(gradG_J1, sctl::Vector<Real>(J.Dim()/3, J.begin() + (J.Dim()/3)*1, false));
       LaplaceFxd2U.Eval(gradG_J2, sctl::Vector<Real>(J.Dim()/3, J.begin() + (J.Dim()/3)*2, false));
+
+      vc_dump_vec<Real>("computeGradB_gradG_J", gradG_J, {COORD_DIM, COORD_DIM, COORD_DIM, trg_Nt_, trg_Np_});
 
       if ((sctl::Long)gradBvc.size() != COORD_DIM * COORD_DIM * N) gradBvc.resize(COORD_DIM * COORD_DIM * N);
       for (sctl::Long i = 0; i < COORD_DIM*N; i++) {
@@ -246,6 +368,8 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeGradB(const 
     sctl::Vector<Real> BdotN, gradBvc_;
     DotProd(BdotN, B, normal);
     LaplaceFxd2U.Eval(gradBvc_, BdotN);
+    vc_dump_vec<Real>("computeGradB_BdotN", BdotN, {grad_quad_Nt_, grad_quad_Np_});
+    vc_dump_vec<Real>("computeGradB_gradgradG_BdotN", gradBvc_, {COORD_DIM, COORD_DIM, trg_Nt_, trg_Np_});
     for (sctl::Long k = 0; k < COORD_DIM*COORD_DIM; k++) {
       for (sctl::Long i = 0; i < trg_Nt_; i++) {
         for (sctl::Long j = 0; j < trg_Np_; j++) {
@@ -254,6 +378,7 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeGradB(const 
       }
     }
   }
+  vc_dump_stdvec<Real>("computeGradB_gradBvc", gradBvc, {COORD_DIM, COORD_DIM, trg_Nt_, trg_Np_});
   return gradBvc;
 }
 
@@ -745,4 +870,3 @@ template <class Real> std::tuple<std::vector<Real>, std::vector<Real>> VirtualCa
 
   return std::make_tuple(std::move(GradBext), std::move(GradBint));
 }
-
