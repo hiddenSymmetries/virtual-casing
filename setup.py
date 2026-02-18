@@ -25,6 +25,32 @@ class CMakeExtension(Extension):
 
 
 class CMakeBuild(build_ext):
+    def run(self):
+        super().run()
+        # Generate stubs after building the extension
+        self._generate_stubs()
+
+    def _generate_stubs(self):
+        """Generate .pyi stub files using pybind11-stubgen."""
+        ext = self.extensions[0]
+        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        env = os.environ.copy()
+        env["PYTHONPATH"] = extdir + os.pathsep + env.get("PYTHONPATH", "")
+        stubs_dir = os.path.join(extdir, "virtual_casing-stubs")
+        os.makedirs(stubs_dir, exist_ok=True)
+        try:
+            subprocess.check_call(
+                [sys.executable, "-m", "pybind11_stubgen", "virtual_casing", "-o", stubs_dir],
+                env=env,
+            )
+            # Rename to __init__.pyi for stub package format
+            src, dst = os.path.join(stubs_dir, "virtual_casing.pyi"), os.path.join(stubs_dir, "__init__.pyi")
+            if os.path.exists(src):
+                os.replace(src, dst)
+            open(os.path.join(stubs_dir, "py.typed"), "w").close()
+        except Exception as e:
+            print(f"Warning: stub generation failed: {e}")
+
     def build_extension(self, ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
 
@@ -117,18 +143,10 @@ class CMakeBuild(build_ext):
         )
 
 
-# The information here can also be placed in setup.cfg - better separation of
-# logic and declaration, and simpler if you include description/version in a file.
+# setup.py - Only needed for CMake extension build.
+# All metadata is in pyproject.toml.
+
 setup(
-    name="virtual_casing",
-    version="0.1.0",
-    author="Dhairya Malhotra, Manas Rachh, Bharat Medasani",
-    author_email="mbkumar@gmail.com",
-    description="Python Wrapper for Virtual Casing",
-    long_description="",
     ext_modules=[CMakeExtension("virtual_casing")],
     cmdclass={"build_ext": CMakeBuild},
-    zip_safe=False,
-    #extras_require={"test": ["pytest>=6.0"]},
-    python_requires=">=3.7",
 )

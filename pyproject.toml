@@ -1,8 +1,35 @@
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=61",
     "wheel",
     "ninja",
-    "cmake>=3.16"
+    "cmake>=3.16",
+    "pybind11-stubgen>=2.5"
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "virtual_casing"
+version = "0.1.2"
+description = "Python Wrapper for Virtual Casing"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    {name = "Dhairya Malhotra"},
+    {name = "Manas Rachh"},
+    {name = "Bharat Medasani", email = "mbkumar@gmail.com"}
+]
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "Operating System :: OS Independent",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=6.0"]
+dev = ["pybind11-stubgen>=2.5", "pytest"]
+
+[project.urls]
+Repository = "https://github.com/hiddenSymmetries/virtual-casing"
