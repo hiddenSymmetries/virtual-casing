@@ -93,15 +93,6 @@ endif()
 find_package(OpenMP REQUIRED)
 
 if (SKBUILD)
-    set(Python_FIND_STRATEGY LOCATION)
-    find_package(Python 3 COMPONENTS Interpreter Development.Module)
-
-    message(STATUS "Python executable is ${Python_EXECUTABLE}")
-    message(STATUS "Python Development Module found value is ${Python_Development.Module_FOUND}")
-    message(STATUS "Python header dirs are ${Python_INCLUDE_DIRS}")
-    message(STATUS "Python library dirs are ${Python_LIBRARY_DIRS}")
-    message(STATUS "Python version is ${Python_VERSION}")
-
     find_package(pybind11 CONFIG REQUIRED)
     pybind11_add_module(${PROJECT_NAME} src/python.cpp)
     target_compile_options(${PROJECT_NAME} PUBLIC "$<$<CXX_COMPILER_ID:PGI>:-Wc,--pending_instantiations=1000>")
@@ -124,6 +115,3 @@ target_link_libraries(vc_testing PUBLIC $<$<BOOL:${FFTW_DOUBLE_LIB_FOUND}>:FFTW:
     $<$<BOOL:${FFTW_FLOAT_LIB_FOUND}>:FFTW::Float> $<$<BOOL:${FFTW_LONGDOUBLE_LIB_FOUND}>:FFTW::LongDouble>
     $<$<BOOL:${FFTW_FLOAT_OPENMP_FOUND}>:FFTW::DoubleOpenMP> "$<$<BOOL:${BLAS_FOUND}>:${BLAS_LIBRARIES}>"
     "$<$<BOOL:${LAPACK_FOUND}>:${LAPACK_LIBRARIES}>" $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
-
-# get_target_property(INC_DIRS vc_testing INCLUDE_DIRECTORIES)
-# message(STATUS "vc_testing include directories are ${INC_DIRS}")
