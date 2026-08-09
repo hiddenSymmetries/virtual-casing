@@ -132,7 +132,16 @@ jobs:
       run: |
         # force the variant being introspected: importing two of them into one
         # process fails, since they register the same pybind11 types
-        VIRTUAL_CASING_ISA=baseline pybind11-stubgen virtual_casing._vc_baseline -o regenerated
+        VIRTUAL_CASING_ISA=baseline python -c "
+        import sys, virtual_casing._vc_baseline as m
+        # __init__.py presents the classes as virtual_casing, which would make
+        # stubgen re-export them rather than declare them; restore their real home
+        for o in vars(m).values():
+            if isinstance(o, type):
+                o.__module__ = m.__name__
+        sys.argv = ['pybind11-stubgen', 'virtual_casing._vc_baseline', '-o', 'regenerated']
+        from pybind11_stubgen import main; main()
+        "
         # stubgen leaves trailing whitespace in docstrings; the committed copy has
         # it stripped, so normalise before comparing
         sed -i 's/[[:space:]]*$//' regenerated/virtual_casing/_vc_baseline.pyi
