@@ -44,3 +44,9 @@ def _select():
 __isa__, _impl = _select()
 
 globals().update({k: v for k, v in vars(_impl).items() if not k.startswith("_")})
+
+# Without this, reprs and tracebacks name the private variant module the user
+# happened to get, so they differ between machines.
+for _obj in list(globals().values()):
+    if isinstance(_obj, type) and getattr(_obj, "__module__", "").startswith(__name__ + "._vc_"):
+        _obj.__module__ = __name__

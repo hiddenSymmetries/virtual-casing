@@ -52,3 +52,4 @@ dev = ["pybind11-stubgen>=2.5", "pytest"]
 
 [project.urls]
 Repository = "https://github.com/hiddenSymmetries/virtual-casing"
+Issues = "https://github.com/hiddenSymmetries/virtual-casing/issues"
