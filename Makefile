@@ -53,6 +53,11 @@ CXXFLAGS += -lfftw3 -DSCTL_HAVE_FFTW
 CXXFLAGS += -lfftw3f -DSCTL_HAVE_FFTWF
 CXXFLAGS += -lfftw3l -DSCTL_HAVE_FFTWL
 
+ifdef LIBXSMM_DIR # use LIBXSMM (version 2.0 or newer) for SCTL's small matrix products
+	CXXFLAGS += -I$(LIBXSMM_DIR)/include -DSCTL_HAVE_LIBXSMM
+	LDLIBS += $(LIBXSMM_DIR)/lib/libxsmm.a -lpthread -ldl -lm $(if $(filter Darwin,$(OS)),,-lrt)
+endif
+
 CXXFLAGS += -lmvec -lm -DSCTL_HAVE_LIBMVEC
 #CXXFLAGS += -DSCTL_HAVE_SVML
 

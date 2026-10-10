@@ -22,6 +22,10 @@ If the above command succeeds, we can go to the next step. Build the ``vc_testin
   
 If the compilation is successful, you will have ``vc_testing`` in the ``build`` folder. 
 
+Optionally, set the environment variable ``LIBXSMM_DIR`` to a build of [LIBXSMM](https://github.com/libxsmm/libxsmm)
+(version 2.0 or newer) before running cmake, or before installing the Python package, to use it for small matrix
+products. The Makefile uses it in the same way.
+
 
 ### Python package
 
