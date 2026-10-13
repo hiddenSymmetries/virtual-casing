@@ -135,6 +135,49 @@ class Tests(unittest.TestCase):
                                                   nphi_factor * 19, 29,
                                                   expected_errors[j])
 
+    def test_rotating_ellipse_offsurf(self):
+        """
+        Off-surface evaluation for the rotating ellipse of test_rotating_ellipse, at targets inside and outside the
+        surface, against the reference fields.
+        """
+        expected_errors = [1e-3, 5e-7, 2e-9]
+        nfp = 4
+        for j in range(3):
+            digits = 3 + 3 * j
+            for half_period in [True, False]:
+                with self.subTest(digits=digits, half_period=half_period):
+                    nphi_factor = 1 if half_period else 2
+                    self.subtest_rotating_ellipse_offsurf(digits, nfp, half_period, nphi_factor * 10, 20,
+                                                          nphi_factor * 3 * digits, 15 * digits,
+                                                          expected_errors[j])
+
+    def subtest_rotating_ellipse_offsurf(self, digits, nfp, half_period, nphi, ntheta, src_nphi, src_ntheta, expected_error):
+        surface_position_vector = self.flatten(self.rotating_ellipse_gamma(nfp, half_period, nphi, ntheta))
+        B_external_src, B_internal_src = self.get_reference_B(nfp, half_period, src_nphi, src_ntheta)
+        B_total_src = np.array(B_external_src) + np.array(B_internal_src)
+        max_val = np.abs(B_total_src).max()
+
+        vcasing = vc.VirtualCasing()
+        vcasing.setup(digits, nfp, half_period, nphi, ntheta, surface_position_vector, src_nphi, src_ntheta)
+
+        # Targets: surface points scaled about the center of their elliptical cross-section by 1 -/+ eps, which puts
+        # them inside/outside the surface
+        x3d = self.rotating_ellipse_gamma(nfp, False, 7, 9)
+        center = x3d.mean(axis=1, keepdims=True)  # mean over theta, at each phi
+        for eps in [1e-1, 1e-3]:
+            x_inside = center + (1 - eps) * (x3d - center)
+            x_outside = center + (1 + eps) * (x3d - center)
+
+            B_external_computed = vcasing.compute_external_B_offsurf(B_total_src, self.flatten(x_inside))
+            B_internal_computed = vcasing.compute_internal_B_offsurf(B_total_src, self.flatten(x_outside))
+            B_external_true = self.flatten(self.reference_B(x_inside)[0])
+            B_internal_true = self.flatten(self.reference_B(x_outside)[1])
+
+            max_rel_err = max(np.abs(np.array(B_external_computed) - B_external_true).max(),
+                              np.abs(np.array(B_internal_computed) - B_internal_true).max()) / max_val
+            print(f"For digits = {digits}, half_period = {half_period} and eps = {eps}, maximum relative off-surface error = {max_rel_err}")
+            self.assertLess(max_rel_err, expected_error)
+
     def rotating_ellipse_gamma(self, nfp, half_period, nphi, ntheta):
         """
         Returns the position vector in Cartesian coordinates on the surface of a rotating ellipse.
@@ -192,14 +235,21 @@ class Tests(unittest.TestCase):
 
     def get_reference_B(self, nfp, half_period, nphi, ntheta):
         """
+        The reference fields of reference_B on the surface of the rotating ellipse, flattened.
+        """
+        B_external, B_internal = self.reference_B(self.rotating_ellipse_gamma(nfp, half_period, nphi, ntheta))
+        return self.flatten(B_external), self.flatten(B_internal)
+
+    def reference_B(self, x3d):
+        """
         B_external is just a 1 / R field in the toroidal direction.
 
         B_internal is the field from a circular wire, computed using the formula with elliptic integrals.
-        """
-        x3d = self.rotating_ellipse_gamma(nfp, half_period, nphi, ntheta)
 
-        B_external = np.zeros((nphi, ntheta, 3))
-        B_internal = np.zeros((nphi, ntheta, 3))
+        Both are evaluated at the points ``x3d``, an array of shape ``(nphi, ntheta, 3)``.
+        """
+        B_external = np.zeros(x3d.shape)
+        B_internal = np.zeros(x3d.shape)
 
         # Evaluate B_external:
         r_squared = x3d[:, :, 0] ** 2 + x3d[:, :, 1] ** 2
@@ -227,8 +277,8 @@ class Tests(unittest.TestCase):
         
         B_internal[:, :, 2] = Inorm / (2 * alpha ** 2 * beta + 1e-31) \
             * ((r0 ** 2 - r ** 2) * ellipek2 + alpha ** 2 * ellipkk2)
-        
-        return self.flatten(B_external), self.flatten(B_internal)
+
+        return B_external, B_internal
     
     def subtest_rotating_ellipse(self, digits, nfp, half_period, nphi, ntheta, src_nphi, src_ntheta, trg_nphi, trg_ntheta, expected_error):
 
