@@ -112,15 +112,11 @@ template <class Real> class VirtualCasing {
      * @param[in] Xt the vector of coordinates for the off-surface evaluation
      * points in the order {x1, x2, ..., xn, y1, ..., z1, ..., Zn}.
      *
-     * @param[in] max_Nt restrict upsampling to max_Nt modes (in a field-period) in toroidal direction.
-     *
-     * @param[in] max_Np restrict upsampling to max_Np modes in poloidal direction.
-     *
      * @return the component of magnetic field at the evaluation points due to
      * currents in the exterior of the surface, computed using the
      * virtual-casing principle.
      */
-    std::vector<Real> ComputeBextOffSurf(const std::vector<Real>& B, const std::vector<Real>& Xt, const sctl::Long max_Nt=-1, const sctl::Long max_Np=-1) const;
+    std::vector<Real> ComputeBextOffSurf(const std::vector<Real>& B, const std::vector<Real>& Xt) const;
 
     /**
      * Recover the GradBext component from the total field B = Bext + Bint by
@@ -170,14 +166,10 @@ template <class Real> class VirtualCasing {
      * @param[in] Xt the vector of coordinates for the off-surface evaluation
      * points in the order {x1, x2, ..., xn, y1, ..., z1, ..., Zn}.
      *
-     * @param[in] max_Nt restrict upsampling to max_Nt modes (in a field-period) in toroidal direction.
-     *
-     * @param[in] max_Np restrict upsampling to max_Np modes in poloidal direction.
-     *
      * @return the component of magnetic field at the evaluation points due to
      * currents in the interior of the surface.
      */
-    std::vector<Real> ComputeBintOffSurf(const std::vector<Real>& B, const std::vector<Real>& Xt, const sctl::Long max_Nt=-1, const sctl::Long max_Np=-1) const;
+    std::vector<Real> ComputeBintOffSurf(const std::vector<Real>& B, const std::vector<Real>& Xt) const;
 
     //std::vector<Real> ComputeGradBint(const std::vector<Real>& B) const; // TODO: requires Hedgehog quadrature normal to be flipped
 
@@ -203,7 +195,7 @@ template <class Real> class VirtualCasing {
 
     std::vector<Real> ComputeB(const std::vector<Real>& B, bool ext) const;
 
-    std::vector<Real> ComputeBOffSurf(const std::vector<Real>& B, const std::vector<Real>& Xt, const sctl::Long max_Nt, const sctl::Long max_Np, bool ext) const;
+    std::vector<Real> ComputeBOffSurf(const std::vector<Real>& B, const std::vector<Real>& Xt, bool ext) const;
 
     std::vector<Real> ComputeGradB(const std::vector<Real>& B, bool ext) const;
 

@@ -66,8 +66,8 @@ template <class Real> void test(int digits, int NFP, bool half_period, long Nt, 
   print_relative_err("GradBext", GradB, GradBext, GradBext_);
 
   // Compute off-surface error
-  const auto Bext_offsurf_ = virtual_casing.ComputeBextOffSurf(B, Xtrg_offsurf_int, (half_period?1:2)*800, 800); // max_Nt, max_Np = 800
-  const auto Bint_offsurf_ = virtual_casing.ComputeBintOffSurf(B, Xtrg_offsurf_ext, (half_period?1:2)*800, 800); // max_Nt, max_Np = 800
+  const auto Bext_offsurf_ = virtual_casing.ComputeBextOffSurf(B, Xtrg_offsurf_int);
+  const auto Bint_offsurf_ = virtual_casing.ComputeBintOffSurf(B, Xtrg_offsurf_ext);
   print_relative_err("Bext_offsurf", B, Bext_offsurf, Bext_offsurf_);
   print_relative_err("Bint_offsurf", B, Bint_offsurf, Bint_offsurf_);
   std::cout<<'\n';
@@ -91,7 +91,7 @@ template <class Real> void test(int digits, int NFP, bool half_period, long Nt, 
 
     std::vector<Real> Bext_offsurf; // reference data
     std::tie(Bext_offsurf, std::ignore) = VirtualCasingTestData<Real>::BFieldDataOffSurf(NFP, half_period, Nt, Np, X, Xtrg);
-    const auto Bext_offsurf_ = virtual_casing.ComputeBextOffSurf(B, Xtrg, (half_period?1:2)*400, 400); // max_Nt, max_Np = 400
+    const auto Bext_offsurf_ = virtual_casing.ComputeBextOffSurf(B, Xtrg);
 
     { // Write VTK
       sctl::VTUData vtu_data;

@@ -31,8 +31,8 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBext(const s
   return ComputeB(B0, true);
 }
 
-template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBextOffSurf(const std::vector<Real>& B0, const std::vector<Real>& Xt, const sctl::Long max_Nt, const sctl::Long max_Np) const {
-  return ComputeBOffSurf(B0, Xt, max_Nt, max_Np, true);
+template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBextOffSurf(const std::vector<Real>& B0, const std::vector<Real>& Xt) const {
+  return ComputeBOffSurf(B0, Xt, true);
 }
 
 template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeGradBext(const std::vector<Real>& B0) const {
@@ -44,8 +44,8 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBint(const s
   return ComputeB(B0, false);
 }
 
-template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBintOffSurf(const std::vector<Real>& B0, const std::vector<Real>& Xt, const sctl::Long max_Nt, const sctl::Long max_Np) const {
-  return ComputeBOffSurf(B0, Xt, max_Nt, max_Np, false);
+template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBintOffSurf(const std::vector<Real>& B0, const std::vector<Real>& Xt) const {
+  return ComputeBOffSurf(B0, Xt, false);
 }
 
 //template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeGradBint(const std::vector<Real>& B0) const {
@@ -126,17 +126,13 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeB(const std:
   return Bvc;
 }
 
-template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBOffSurf(const std::vector<Real>& B0, const std::vector<Real>& Xt, const sctl::Long max_Nt, const sctl::Long max_Np, bool ext) const {
+template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBOffSurf(const std::vector<Real>& B0, const std::vector<Real>& Xt, bool ext) const {
   SCTL_ASSERT((sctl::Long)B0.size() == COORD_DIM * src_Nt_ * src_Np_);
   const sctl::Long quad_Nt_ = std::max(NFP_*(half_period_?2:1)*src_Nt_, Svec[0].NTor());
   const sctl::Long quad_Np_ = std::max(src_Np_, Svec[0].NPol());
 
   sctl::Vector<Real> XX;
   biest::SurfaceOp<Real>::Resample(XX, quad_Nt_, quad_Np_, Svec[0].Coord(), Svec[0].NTor(), Svec[0].NPol());
-  sctl::Vector<biest::Surface<Real>> Svec_(1);
-  Svec_[0] = biest::Surface<Real>(quad_Nt_, quad_Np_);
-  Svec_[0].Coord() = XX;
-
   biest::SurfaceOp<Real> SurfOp(comm_, quad_Nt_, quad_Np_);
   sctl::Vector<Real> dX, normal;
   SurfOp.Grad2D(dX, XX);
@@ -152,24 +148,7 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBOffSurf(con
 
   std::vector<Real> Bvc;
   Real sign = (ext ? 1 : -1); // flip sign for internal currents
-  if (0) { // Bvc = BiotSavartFxU.Eval(normal x B) * sign;
-    SCTL_ASSERT(quad_Nt_ >= 13);
-    SCTL_ASSERT(quad_Np_ >= 13);
-    biest::BoundaryIntegralOp<Real, 3, 3, 1, 6, 1> BiotSavartFxU;
-    BiotSavartFxU.SetupSingular(Svec_, biest::BiotSavart3D<Real>::FxU());
-
-    sctl::Vector<Real> Bvc_;
-    BiotSavartFxU.EvalOffSurface(Bvc_, sctl::Vector<Real>(Xt), J * (-sign));
-    Bvc.assign(Bvc_.begin(), Bvc_.end());
-  }
-  if (0) { // Bvc += gradG[B . normal]
-    sctl::Vector<Real> Bvc_;
-    biest::BoundaryIntegralOp<Real, 1, 3, 1, 6, 1> LaplaceFxdU;
-    LaplaceFxdU.SetupSingular(Svec_, biest::Laplace3D<Real>::FxdU());
-    LaplaceFxdU.EvalOffSurface(Bvc_, sctl::Vector<Real>(Xt), BdotN);
-    for (sctl::Long i = 0; i < Bvc_.Dim(); i++) Bvc[i] += Bvc_[i] * sign;
-  }
-  { // Adaptive evaluation
+  { // Set Bvc
     const auto& X = Svec[0].Coord();
     std::vector<Real> XX(X.begin(), X.end());
     std::vector<Real> J_(J.begin(), J.end());
@@ -180,7 +159,7 @@ template <class Real> std::vector<Real> VirtualCasing<Real>::ComputeBOffSurf(con
 
     biest::ExtVacuumField<Real> ext_vacuum;
     ext_vacuum.Setup(digits_, 1, Svec[0].NTor(), Svec[0].NPol(), XX, quad_Nt_, quad_Np_);
-    Bvc = ext_vacuum.EvalOffSurface(Xt, BdotN_, J_, (half_period_?2:1)*max_Nt, max_Np);
+    Bvc = ext_vacuum.EvalOffSurface(Xt, BdotN_, J_);
   }
   return Bvc;
 }

@@ -123,7 +123,7 @@ class VirtualCasing:
                         The component of magnetic field on the surface due to currents in
                         the exterior of the surface.
         """
-    def compute_external_B_offsurf(self, B_total: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex], Xt: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex], max_Nt: typing.SupportsInt | typing.SupportsIndex = -1, max_Np: typing.SupportsInt | typing.SupportsIndex = -1) -> list[float]:
+    def compute_external_B_offsurf(self, B_total: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex], Xt: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex]) -> list[float]:
         """
                     Compute the magnetic field due to currents external to the surface at off-surface points.
 
@@ -138,12 +138,6 @@ class VirtualCasing:
                     Xt : list of float
                         The coordinates for off-surface evaluation points in the order
                         {x1, x2, ..., xn, y1, ..., z1, ..., zn}.
-                    max_Nt : int, optional
-                        Restrict upsampling to max_Nt modes (in a field-period) in toroidal
-                        direction. Default is -1 (no restriction).
-                    max_Np : int, optional
-                        Restrict upsampling to max_Np modes in poloidal direction.
-                        Default is -1 (no restriction).
 
                     Returns
                     -------
@@ -192,7 +186,7 @@ class VirtualCasing:
                         The component of magnetic field on the surface due to currents in
                         the interior of the surface.
         """
-    def compute_internal_B_offsurf(self, B_total: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex], Xt: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex], max_Nt: typing.SupportsInt | typing.SupportsIndex = -1, max_Np: typing.SupportsInt | typing.SupportsIndex = -1) -> list[float]:
+    def compute_internal_B_offsurf(self, B_total: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex], Xt: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex]) -> list[float]:
         """
                     Compute the magnetic field due to currents internal to the surface at off-surface points.
 
@@ -206,12 +200,6 @@ class VirtualCasing:
                     Xt : list of float
                         The coordinates for off-surface evaluation points in the order
                         {x1, x2, ..., xn, y1, ..., z1, ..., zn}.
-                    max_Nt : int, optional
-                        Restrict upsampling to max_Nt modes (in a field-period) in toroidal
-                        direction. Default is -1 (no restriction).
-                    max_Np : int, optional
-                        Restrict upsampling to max_Np modes in poloidal direction.
-                        Default is -1 (no restriction).
 
                     Returns
                     -------
