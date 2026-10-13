@@ -126,7 +126,7 @@ jobs:
         python-version: '3.11'
 
     - name: Install package and stubgen
-      run: python -m pip install . "pybind11-stubgen>=2.5" mypy
+      run: python -m pip install . "pybind11-stubgen>=3.0,<4" mypy
 
     - name: Regenerate stubs and compare
       run: |
@@ -139,7 +139,7 @@ jobs:
         for o in vars(m).values():
             if isinstance(o, type):
                 o.__module__ = m.__name__
-        sys.argv = ['pybind11-stubgen', 'virtual_casing._vc_baseline', '-o', 'regenerated']
+        sys.argv = ['pybind11-stubgen', '--print-value-comments', 'virtual_casing._vc_baseline', '-o', 'regenerated']
         from pybind11_stubgen import main; main()
         "
         # stubgen leaves trailing whitespace in docstrings; the committed copy has
