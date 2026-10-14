@@ -53,6 +53,35 @@ if(FFTW_DOUBLE_LIB_FOUND)
 endif()
 # float/long-double FFTW is never called; linking it only bloats the wheel
 
+# LIBXSMM generates SCTL's small matrix products for the CPU that runs them, whatever the compiler flags
+option (VC_USE_LIBXSMM "Link LIBXSMM, if found in LIBXSMM_DIR or the default paths, for SCTL's small matrix products" ON)
+if (VC_USE_LIBXSMM)
+    find_path (LIBXSMM_INCLUDE_DIR libxsmm.h HINTS "$ENV{LIBXSMM_DIR}/include")
+    find_library (LIBXSMM_LIBRARY NAMES libxsmm.a xsmm HINTS "$ENV{LIBXSMM_DIR}/lib")
+endif ()
+if (LIBXSMM_INCLUDE_DIR AND LIBXSMM_LIBRARY)
+    find_package (Threads REQUIRED)
+    set (LIBXSMM_LIBRARIES ${LIBXSMM_LIBRARY} Threads::Threads ${CMAKE_DL_LIBS} m)
+    if (NOT APPLE)
+        list (APPEND LIBXSMM_LIBRARIES rt)
+    endif ()
+    # versions before 2.0 lack this interface
+    include (CheckCXXSourceCompiles)
+    set (CMAKE_REQUIRED_INCLUDES ${LIBXSMM_INCLUDE_DIR})
+    set (CMAKE_REQUIRED_LIBRARIES ${LIBXSMM_LIBRARIES})
+    check_cxx_source_compiles ("#include <libxsmm.h>
+        int main() {
+          const libxsmm_gemm_shape shape = libxsmm_create_gemm_shape(1, 1, 1, 1, 1, 1, LIBXSMM_DATATYPE_F64, LIBXSMM_DATATYPE_F64, LIBXSMM_DATATYPE_F64, LIBXSMM_DATATYPE_F64);
+          return libxsmm_dispatch_gemm(shape, 0, 0) == nullptr;
+        }" LIBXSMM_FOUND)
+    unset (CMAKE_REQUIRED_INCLUDES)
+    unset (CMAKE_REQUIRED_LIBRARIES)
+endif ()
+if (LIBXSMM_FOUND)
+    add_definitions (-DSCTL_HAVE_LIBXSMM)
+    include_directories ("${LIBXSMM_INCLUDE_DIR}")
+endif ()
+
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 # Update submodules as needed
@@ -113,8 +142,12 @@ if (SKBUILD)
         target_include_directories(${tgt} PRIVATE "$<$<BOOL:${FFTW_DOUBLE_LIB_FOUND}>:${FFTW_INCLUDE_DIRS}>"
                                                   "include" "extern/SCTL/include" "extern/BIEST/include")
         target_link_libraries(${tgt} PRIVATE "$<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>"
-            "$<$<BOOL:${FFTW_DOUBLE_LIB_FOUND}>:FFTW::Double>"
+            "$<$<BOOL:${FFTW_DOUBLE_LIB_FOUND}>:FFTW::Double>" "$<$<BOOL:${LIBXSMM_FOUND}>:${LIBXSMM_LIBRARIES}>"
             "$<$<BOOL:${BLAS_FOUND}>:${BLAS_LIBRARIES}>" "$<$<BOOL:${LAPACK_FOUND}>:${LAPACK_LIBRARIES}>")
+        if (LIBXSMM_FOUND AND NOT APPLE)
+            # not exported, so that another copy of LIBXSMM in the process does not replace these functions
+            target_link_options(${tgt} PRIVATE "LINKER:--exclude-libs,libxsmm.a")
+        endif ()
         install(TARGETS ${tgt} LIBRARY DESTINATION ${PROJECT_NAME})
     endforeach()
 
@@ -131,5 +164,6 @@ target_compile_options(vc_testing PUBLIC "$<$<CXX_COMPILER_ID:PGI>:-Wc,--pending
 target_include_directories(vc_testing PRIVATE "$<$<BOOL:${FFTW_DOUBLE_LIB_FOUND}>:${FFTW_INCLUDE_DIRS}>"
 					      "include" "extern/SCTL/include" "extern/BIEST/include")
 target_link_libraries(vc_testing PUBLIC $<$<BOOL:${FFTW_DOUBLE_LIB_FOUND}>:FFTW::Double>
+    "$<$<BOOL:${LIBXSMM_FOUND}>:${LIBXSMM_LIBRARIES}>"
     "$<$<BOOL:${BLAS_FOUND}>:${BLAS_LIBRARIES}>"
     "$<$<BOOL:${LAPACK_FOUND}>:${LAPACK_LIBRARIES}>" $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)

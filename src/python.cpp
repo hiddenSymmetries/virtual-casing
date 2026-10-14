@@ -121,7 +121,7 @@ PYBIND11_MODULE(VC_MODULE_NAME, m) {
                 the exterior of the surface.
             )pbdoc")
         .def("compute_external_B_offsurf", &VirtualCasing<double>::ComputeBextOffSurf,
-            py::arg("B_total"), py::arg("Xt"), py::arg("max_Nt") = -1, py::arg("max_Np") = -1,
+            py::arg("B_total"), py::arg("Xt"),
             R"pbdoc(
             Compute the magnetic field due to currents external to the surface at off-surface points.
 
@@ -136,12 +136,6 @@ PYBIND11_MODULE(VC_MODULE_NAME, m) {
             Xt : list of float
                 The coordinates for off-surface evaluation points in the order
                 {x1, x2, ..., xn, y1, ..., z1, ..., zn}.
-            max_Nt : int, optional
-                Restrict upsampling to max_Nt modes (in a field-period) in toroidal
-                direction. Default is -1 (no restriction).
-            max_Np : int, optional
-                Restrict upsampling to max_Np modes in poloidal direction.
-                Default is -1 (no restriction).
 
             Returns
             -------
@@ -193,7 +187,7 @@ PYBIND11_MODULE(VC_MODULE_NAME, m) {
                 the interior of the surface.
             )pbdoc")
         .def("compute_internal_B_offsurf", &VirtualCasing<double>::ComputeBintOffSurf,
-            py::arg("B_total"), py::arg("Xt"), py::arg("max_Nt") = -1, py::arg("max_Np") = -1,
+            py::arg("B_total"), py::arg("Xt"),
             R"pbdoc(
             Compute the magnetic field due to currents internal to the surface at off-surface points.
 
@@ -207,12 +201,6 @@ PYBIND11_MODULE(VC_MODULE_NAME, m) {
             Xt : list of float
                 The coordinates for off-surface evaluation points in the order
                 {x1, x2, ..., xn, y1, ..., z1, ..., zn}.
-            max_Nt : int, optional
-                Restrict upsampling to max_Nt modes (in a field-period) in toroidal
-                direction. Default is -1 (no restriction).
-            max_Np : int, optional
-                Restrict upsampling to max_Np modes in poloidal direction.
-                Default is -1 (no restriction).
 
             Returns
             -------

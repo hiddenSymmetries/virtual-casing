@@ -48,7 +48,7 @@ VC_USE_BLAS = "OFF"
 
 [project.optional-dependencies]
 test = ["pytest>=6.0"]
-dev = ["pybind11-stubgen>=2.5", "pytest"]
+dev = ["pybind11-stubgen>=3.0,<4", "pytest"]
 
 [project.urls]
 Repository = "https://github.com/hiddenSymmetries/virtual-casing"
