@@ -1,3 +1,7 @@
+# Copyright (C) 2021-2026 The Simons Foundation, Inc. and the virtual-casing authors (see NOTICE)
+# Author: Dhairya Malhotra
+# SPDX-License-Identifier: Apache-2.0
+
 """Check that every ISA variant which was built AND is runnable here can be selected.
 
 The set of variants depends on the target: arm64 builds only baseline, and a CPU

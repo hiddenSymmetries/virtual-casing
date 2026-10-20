@@ -1,3 +1,7 @@
+// Copyright (C) 2021-2026 The Simons Foundation, Inc. and the virtual-casing authors (see NOTICE)
+// Author: Dhairya Malhotra
+// SPDX-License-Identifier: Apache-2.0
+
 // Baseline-compiled probe used by virtual_casing/__init__.py to choose an
 // instruction-set variant. __builtin_cpu_supports checks OS enablement via
 // XGETBV, not just CPUID, so a kernel that has not enabled AVX-512 reports false.

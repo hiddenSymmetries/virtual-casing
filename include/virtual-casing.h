@@ -1,3 +1,7 @@
+// Copyright (C) 2021-2026 The Simons Foundation, Inc. and the virtual-casing authors (see NOTICE)
+// Authors: Dhairya Malhotra, Matt Landreman
+// SPDX-License-Identifier: Apache-2.0
+
 #ifndef _BIEST_VIRTUAL_CASING_TEST_DATA_H_
 #define _BIEST_VIRTUAL_CASING_TEST_DATA_H_
 

@@ -1,3 +1,7 @@
+# Copyright (C) 2021-2026 The Simons Foundation, Inc. and the virtual-casing authors (see NOTICE)
+# Author: Dhairya Malhotra
+# SPDX-License-Identifier: Apache-2.0
+
 """Public API of the package.
 
 __init__.py re-exports one instruction-set variant chosen at import time, which

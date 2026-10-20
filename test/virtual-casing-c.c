@@ -1,3 +1,7 @@
+// Copyright (C) 2021-2026 The Simons Foundation, Inc. and the virtual-casing authors (see NOTICE)
+// Author: Dhairya Malhotra
+// SPDX-License-Identifier: Apache-2.0
+
 #include <virtual-casing.h>
 #include <stdlib.h>
 #include <stdio.h>

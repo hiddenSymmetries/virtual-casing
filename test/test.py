@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (C) 2021-2026 The Simons Foundation, Inc. and the virtual-casing authors (see NOTICE)
+# Authors: Matt Landreman, Dhairya Malhotra, Bharat Medasani
+# SPDX-License-Identifier: Apache-2.0
 
 import unittest
 import numpy as np

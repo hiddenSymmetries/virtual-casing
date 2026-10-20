@@ -1,3 +1,7 @@
+// Copyright (C) 2021-2026 The Simons Foundation, Inc. and the virtual-casing authors (see NOTICE)
+// Author: Dhairya Malhotra
+// SPDX-License-Identifier: Apache-2.0
+
 #include <virtual-casing.hpp>
 
 template <class Real> void test(int digits, int NFP, bool half_period, long Nt, long Np, biest::SurfType surf_type, long src_Nt, long src_Np, long trg_Nt, long trg_Np) {

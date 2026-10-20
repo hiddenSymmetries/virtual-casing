@@ -1,3 +1,7 @@
+// Copyright (C) 2021-2026 The Simons Foundation, Inc. and the virtual-casing authors (see NOTICE)
+// Authors: Dhairya Malhotra, Antoine Cerfon
+// SPDX-License-Identifier: Apache-2.0
+
 #include <virtual-casing.hpp>
 
 template <class Real> void test(const Real R0, const Real a, const Real kappa, int digits, int NFP, long Nt, long Np, long src_Nt, long src_Np, long trg_Nt, long trg_Np) {

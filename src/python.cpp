@@ -1,3 +1,7 @@
+// Copyright (C) 2021-2026 The Simons Foundation, Inc. and the virtual-casing authors (see NOTICE)
+// Authors: Chris Smiet, Bharat Medasani, Dhairya Malhotra
+// SPDX-License-Identifier: Apache-2.0
+
 #include <vector>
 #include <virtual-casing.hpp>
 
