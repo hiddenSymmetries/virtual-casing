@@ -8,16 +8,14 @@ name = "virtual_casing"
 description = "Python Wrapper for Virtual Casing"
 readme = "README.md"
 license = "Apache-2.0"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "NOTICE"]
 dynamic = ["version"]
 authors = [
     {name = "Dhairya Malhotra"},
     {name = "Bharat Medasani", email = "mbkumar@gmail.com"},
     {name = "Matt Landreman"},
     {name = "Chris Smiet"},
-    {name = "Manas Rachh"},
     {name = "Antoine Cerfon"},
-    {name = "Misha Padidar"},
 ]
 maintainers = [
     {name = "Dhairya Malhotra"},

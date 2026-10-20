@@ -1,0 +1,117 @@
+cff-version: 1.2.0
+message: "If you use virtual-casing, please cite both the software and the paper below."
+type: software
+title: "virtual-casing: the virtual-casing principle on toroidal surfaces"
+authors:
+  - given-names: Dhairya
+    family-names: Malhotra
+  - given-names: Bharat
+    family-names: Medasani
+  - given-names: Matt
+    family-names: Landreman
+  - given-names: Chris
+    family-names: Smiet
+  - given-names: Antoine
+    family-names: Cerfon
+abstract: "A C++ library, with C and Python interfaces, that computes from the total magnetic field on a toroidal surface the part due to currents outside (or inside) the surface, on and off the surface, and the gradient of the external part, using the virtual-casing principle and the high-order singular quadratures of BIEST."
+repository-code: "https://github.com/hiddenSymmetries/virtual-casing"
+license: Apache-2.0
+preferred-citation:
+  type: article
+  title: "Efficient high-order singular quadrature schemes in magnetic fusion"
+  authors:
+    - given-names: Dhairya
+      family-names: Malhotra
+    - given-names: Antoine J.
+      family-names: Cerfon
+    - given-names: Michael
+      family-names: "O'Neil"
+    - given-names: Evan
+      family-names: Toler
+  journal: "Plasma Physics and Controlled Fusion"
+  publisher:
+    name: IOP Publishing
+  volume: 62
+  issue: 2
+  start: "024004"
+  year: 2020
+  month: 2
+  doi: "10.1088/1361-6587/ab57f4"
+references:
+  - type: article
+    title: "Taylor states in stellarators: A fast high-order boundary integral solver"
+    authors:
+      - given-names: Dhairya
+        family-names: Malhotra
+      - given-names: Antoine
+        family-names: Cerfon
+      - given-names: Lise-Marie
+        family-names: Imbert-Gérard
+      - given-names: Michael
+        family-names: "O'Neil"
+    journal: "Journal of Computational Physics"
+    publisher:
+      name: Elsevier BV
+    volume: 397
+    start: 108791
+    year: 2019
+    month: 11
+    doi: "10.1016/j.jcp.2019.06.067"
+    notes: "The singular quadrature that virtual-casing uses through BIEST."
+  - type: article
+    title: "Efficient high-order singular quadrature schemes in magnetic fusion"
+    authors:
+      - given-names: Dhairya
+        family-names: Malhotra
+      - given-names: Antoine J.
+        family-names: Cerfon
+      - given-names: Michael
+        family-names: "O'Neil"
+      - given-names: Evan
+        family-names: Toler
+    journal: "Plasma Physics and Controlled Fusion"
+    publisher:
+      name: IOP Publishing
+    volume: 62
+    issue: 2
+    start: "024004"
+    year: 2020
+    month: 2
+    doi: "10.1088/1361-6587/ab57f4"
+  - type: software
+    title: "BIEST: Boundary Integral Equation Solver for Taylor states"
+    authors:
+      - given-names: Dhairya
+        family-names: Malhotra
+    repository-code: "https://github.com/dmalhotra/BIEST"
+    license: Apache-2.0
+    doi: "10.5281/zenodo.23511944"
+    notes: "virtual-casing uses BIEST's singular quadratures and surface operators, included as the git submodule extern/BIEST."
+  - type: software
+    title: "SCTL: Scientific Computing Template Library"
+    authors:
+      - given-names: Dhairya
+        family-names: Malhotra
+      - given-names: Tianyue
+        family-names: Li
+      - given-names: Robert
+        family-names: Blackwell
+      - given-names: Wen
+        family-names: Yan
+      - given-names: Xuanzhao
+        family-names: Gao
+    repository-code: "https://github.com/dmalhotra/SCTL"
+    url: "https://sctl.readthedocs.io"
+    license: Apache-2.0
+    doi: "10.5281/zenodo.23511629"
+    notes: "virtual-casing is built on SCTL, included as the git submodule extern/SCTL."
+  - type: software
+    title: findFFTW
+    authors:
+      - given-names: Wenzel
+        family-names: Jakob
+      - given-names: Patrick
+        family-names: Bos
+    repository-code: "https://github.com/egpbos/findFFTW"
+    license: BSD-3-Clause
+    notes: "cmake/FindFFTW.cmake."
