@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use virtual-casing, please cite both the software and the paper below."
+message: "If you use virtual-casing, please cite the software and the papers below."
 type: software
 title: "virtual-casing: the virtual-casing principle on toroidal surfaces"
 authors:
@@ -86,7 +86,7 @@ references:
     repository-code: "https://github.com/dmalhotra/BIEST"
     license: Apache-2.0
     doi: "10.5281/zenodo.23511944"
-    notes: "virtual-casing uses BIEST's singular quadratures and surface operators, included as the git submodule extern/BIEST."
+    notes: "virtual-casing uses BIEST's singular quadratures, surface operators and off-surface operator, included as the git submodule extern/BIEST."
   - type: software
     title: "SCTL: Scientific Computing Template Library"
     authors:
@@ -96,6 +96,8 @@ references:
         family-names: Li
       - given-names: Robert
         family-names: Blackwell
+      - given-names: Abtin
+        family-names: Rahimian
       - given-names: Wen
         family-names: Yan
       - given-names: Xuanzhao
@@ -104,7 +106,7 @@ references:
     url: "https://sctl.readthedocs.io"
     license: Apache-2.0
     doi: "10.5281/zenodo.23511629"
-    notes: "virtual-casing is built on SCTL, included as the git submodule extern/SCTL."
+    notes: "virtual-casing is built on SCTL, included as the git submodule extern/SCTL: directly for its containers, and through BIEST for the adaptive near-surface quadrature of off-surface evaluation (QuadElemList), FFTs and Gauss-Legendre rules."
   - type: software
     title: findFFTW
     authors:
