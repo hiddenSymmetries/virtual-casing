@@ -1,3 +1,7 @@
+// Copyright (C) 2021-2026 The Simons Foundation, Inc. and the virtual-casing authors (see NOTICE)
+// Authors: Dhairya Malhotra, Matt Landreman, Bharat Medasani
+// SPDX-License-Identifier: Apache-2.0
+
 #include <utility>
 #include <biest.hpp>
 

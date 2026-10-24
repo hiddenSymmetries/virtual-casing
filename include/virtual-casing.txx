@@ -1,3 +1,6 @@
+// Copyright (C) 2021-2026 The Simons Foundation, Inc. and the virtual-casing authors (see NOTICE)
+// Authors: Dhairya Malhotra, Bharat Medasani
+// SPDX-License-Identifier: Apache-2.0
 
 template <class Real> VirtualCasing<Real>::VirtualCasing() : comm_(sctl::Comm::Self()), BiotSavartFxU(comm_), LaplaceFxdU(comm_), BiotSavartFxdU(comm_), LaplaceFxd2U(comm_), Svec(1), NFP_(0), digits_(10), dosetup(true), dosetup_grad(true) {
 }
