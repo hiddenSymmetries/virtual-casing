@@ -15,6 +15,10 @@ authors:
     family-names: Cerfon
 abstract: "A C++ library, with C and Python interfaces, that computes from the total magnetic field on a toroidal surface the part due to currents outside (or inside) the surface, on and off the surface, and the gradient of the external part, using the virtual-casing principle and the high-order singular quadratures of BIEST."
 repository-code: "https://github.com/hiddenSymmetries/virtual-casing"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.23619289"
+    description: "Zenodo concept DOI (all versions)"
 license: Apache-2.0
 preferred-citation:
   type: article

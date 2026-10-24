@@ -1,5 +1,7 @@
 # virtual-casing
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23619289.svg)](https://doi.org/10.5281/zenodo.23619289)
+
 ## Installation
 ### C++ Executable
 In addition to having C++ compiler (tested with GCC-9 and newer) that supports C++17 standard and OpenMP, install FFTW and LAPACK libraries. Intel MKL provides both of them.
@@ -51,7 +53,7 @@ Run the tests using
 
 If you use virtual-casing, or code derived from it, please cite the software and the papers below (also listed in [CITATION.cff](CITATION.cff)):
 
-- D. Malhotra, B. Medasani, M. Landreman, C. Smiet, A. Cerfon, *virtual-casing: the virtual-casing principle on toroidal surfaces*, https://github.com/hiddenSymmetries/virtual-casing.
+- D. Malhotra, B. Medasani, M. Landreman, C. Smiet, A. Cerfon, *virtual-casing: the virtual-casing principle on toroidal surfaces*, https://github.com/hiddenSymmetries/virtual-casing, [doi:10.5281/zenodo.23619289](https://doi.org/10.5281/zenodo.23619289).
 - D. Malhotra, *BIEST: Boundary Integral Equation Solver for Taylor states*, https://github.com/dmalhotra/BIEST, [doi:10.5281/zenodo.23511944](https://doi.org/10.5281/zenodo.23511944).
 - D. Malhotra, T. Li, R. Blackwell, A. Rahimian, W. Yan, X. Gao, *SCTL: Scientific Computing Template Library*, https://github.com/dmalhotra/SCTL, [doi:10.5281/zenodo.23511629](https://doi.org/10.5281/zenodo.23511629).
 - D. Malhotra, A. J. Cerfon, M. O'Neil, E. Toler, "Efficient high-order singular quadrature schemes in magnetic fusion," *Plasma Physics and Controlled Fusion* 62 (2020) 024004, [doi:10.1088/1361-6587/ab57f4](https://doi.org/10.1088/1361-6587/ab57f4).
@@ -65,7 +67,8 @@ If you use virtual-casing, or code derived from it, please cite the software and
   author    = {Malhotra, Dhairya and Medasani, Bharat and Landreman, Matt and Smiet, Chris and Cerfon, Antoine},
   title     = {virtual-casing: the virtual-casing principle on toroidal surfaces},
   url       = {https://github.com/hiddenSymmetries/virtual-casing},
-  version   = {0.3.0},
+  doi       = {10.5281/zenodo.23619289},
+  version   = {0.3.1},
   year      = {2026}
 }
 
